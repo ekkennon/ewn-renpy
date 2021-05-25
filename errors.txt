@@ -1,0 +1,10 @@
+﻿I'm sorry, but errors were detected in your script. Please correct the
+errors listed below, and try again.
+
+
+File "game/script.rpy", line 124: reached end of line when expecting ':'.
+    while curCar > -1
+                     ^
+
+Ren'Py Version: Ren'Py 7.4.4.1439
+Mon May 24 16:34:04 2021
