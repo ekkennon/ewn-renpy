@@ -1,9 +1,7 @@
 # GOTO = jump
 # GOSUB = call
-# from __future__ import division
 
 init python:
-    from __future__ import division
     import math
 
 # player variables:
@@ -15,7 +13,7 @@ define lane = 1
 define LT = [0,0] # the low time of each player
 
 # car variables:
-define gearRatios = [[1,1.76,3.11,0,3.78],[1,1.66,2.94,0,4.11]] # [2,5] 1st,2nd,3rd,4th(0 on 3-speed transmissions),rear-end ratio, origianlly L
+define gearRatios = [[-1,1,1.76,3.11,0,3.78],[-1,1,1.66,2.94,0,4.11]] # [2,5] placeholder,1st,2nd,3rd,4th(0 on 3-speed transmissions),rear-end ratio, origianlly L
 define engineStats = [[85,4466.667,221,1,3800,160,2000,0,0], [103,4100,248,1,3800,196,1800,0,0]] # [2,9] various details, maybe related to the engine. hp,shifting RPM,cid,?,hp @,torque,torque @,?,?  orininally P
 define weight = [[2791,0,0],[3355,0,0]] # [2,3] originally O
 define D = [2.3,2.3]
@@ -58,6 +56,9 @@ define E = [0,0]
 define WR = 0
 define accel = 0 # originally A
 define BW1 = 0
+define BW2 = 0
+define BW3 = 0
+define BW4 = 0
 define BURN1 = 0
 define BURN2 = 0
 define BURN3 = 0
@@ -86,7 +87,7 @@ define PV = [0,0]
 define HIS = 0
 
 # other variables:
-define CL = 2 # not sure anything about this variable  10453 CL=CL+1
+define CL = 0 # not sure anything about this variable  10453 CL=CL+1
 define round = 0 # originally ROUND
 define race = 0
 define phase = 0
@@ -169,7 +170,7 @@ label phase1:
     $ race += 1
     call chooseCarMod
     "Beginning Race #[round]"
-    #call race  # race 2
+    call race  # race 2
 
     $ round += 1
     $ race += 1
