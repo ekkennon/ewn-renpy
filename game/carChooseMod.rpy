@@ -1,23 +1,27 @@
-
 label chooseCarMod:
+    # pre race 1 should now be complete (aside from typical debugging)
+    # pre race 2 should start at line 15000
+    # pre race 3 should start at line 16000
+    # pre race 4 should start at line 17000 and should include line 12900 (use diff checker)
+
     $ curCar = phase % 2
     while curCar == 1 or curCar == 0:
-        if curCar == 0:
-            player[0] "YOU ARE CURRENTLY DRIVING A  [engineStats[0][0]] HP [desc[0]]."
-            player[0] "YOU HAVE $[savings[0]] IN SAVINGS. THE CAR IS NOW VALUED AT $[carVal[0]]"
-            $ nw = savings[0] + carVal[0]
-            player[0] "YOUR NET WORTH IS $[nw] AND YOU HAVE WON [WIN1] RACES"
-        elif curCar == 1:
-            player[1] "YOU ARE CURRENTLY DRIVING A [engineStats[1][0]] HP [desc[1]]"
-            player[1] "YOU HAVE $[savings[1]] IN SAVINGS; THE CAR IS NOW VALUED AT $[carVal[1]]"
-            $ nw = savings[1] + carVal[1]
-            player[1] "YOUR NET WORTH IS $[nw] AND YOU HAVE WON [WIN2] RACES"
+        $ nw = savings[curCar] + carVal[curCar]
+        if numGears[curCar] > 0:
+            if curCar == 0:
+                player[0] "YOU ARE CURRENTLY DRIVING A  [engineStats[0][0]] HP [desc[0]]."
+                player[0] "YOU HAVE $[savings[0]] IN SAVINGS. THE CAR IS NOW VALUED AT $[carVal[0]]"
+                player[0] "YOUR NET WORTH IS $[nw] AND YOU HAVE WON [WIN1] RACES"
+            elif curCar == 1:
+                player[1] "YOU ARE CURRENTLY DRIVING A [engineStats[1][0]] HP [desc[1]]"
+                player[1] "YOU HAVE $[savings[1]] IN SAVINGS; THE CAR IS NOW VALUED AT $[carVal[1]]"
+                player[1] "YOUR NET WORTH IS $[nw] AND YOU HAVE WON [WIN2] RACES"
 
         $ lookAvail = False # this is true on race 1 and after race 2
         $ modsAvail = False # this is true after race 1, this should remain false when the car has no mods available - later races
         $ raceAvail = False # this is true when the player has a working car (after race 1)
 
-        if race == 1:
+        if numGears[curCar] == 0: # if current player has no car
             $ lookAvail = True
 
         if race > 1:
@@ -33,7 +37,7 @@ label chooseCarMod:
             "Look at used cars" if lookAvail:
                 call chooseCar
 
-            "Make modifications" if  modsAvail:
+            "Make modifications" if modsAvail:
                 call modifications
 
             "Race the car 'As Is'" if raceAvail: # I'm ready to race
@@ -46,16 +50,95 @@ label chooseCarMod:
     return
 
 label disreputable:
-    player[curCar] "disreputable"
+    $ curFile = renpy.file("cars/carslist" + str(phase) + str(stage) + str(curCar) + ".dg1")
+    $ lines = curFile.read().splitlines()
 
+    $ car1 = ""
+    while len(lines) > 0 and car1 == "":
+        $ car1 = renpy.random.choice(lines)
+        $ cardets = car1.split(",")
+        $ lines.remove(car1)
+        if savings[curCar] < cardets[3]:
+            if cardets[18] < FINYR: # car is too old to be financed
+                $ car1 = ""
+
+    $ desc1 = cardets[4] + " " + cardets[5] + " " + cardets[6]
+    $ car2 = ""
+    while len(lines) > 0 and car2 == "":
+        $ car2 = renpy.random.choice(lines)
+        $ cardets = car2.split(",")
+        $ lines.remove(car2)
+        if savings[curCar] < cardets[3]:
+            if cardets[18] < FINYR: # car is too old to be financed
+                $ car2 = ""
+
+    $ desc2 = cardets[4] + " " + cardets[5] + " " + cardets[6]
+    $ car3 = ""
+    while len(lines) > 0 and car3 == "":
+        $ car3 = renpy.random.choice(lines)
+        $ cardets = car3.split(",")
+        $ lines.remove(car3)
+        if savings[curCar] < cardets[3]:
+            if cardets[18] < FINYR: # car is too old to be financed
+                $ car3 = ""
+
+    $ desc3 = cardets[4] + " " + cardets[5] + " " + cardets[6]
+    $ car4 = ""
+    while len(lines) > 0 and car4 == "":
+        $ car4 = renpy.random.choice(lines)
+        $ cardets = car4.split(",")
+        $ lines.remove(car4)
+        if savings[curCar] < cardets[3]:
+            if cardets[18] < FINYR: # car is too old to be financed
+                $ car4 = ""
+    $ desc4 = cardets[4] + " " + cardets[5] + " " + cardets[6]
+
+    menu:
+        "Which car would you like?"
+
+        "[desc1]" if car1 != "":
+            $ cardets = car1.split(",")
+        "[desc2]" if car2 != "":
+            $ cardets = car2.split(",")
+        "[desc3]" if car3 != "":
+            $ cardets = car3.split(",")
+        "[desc4]" if car4 != "":
+            $ cardets = car4.split(",")
+
+    call assignCar
     return
 
 label junkyard:
     player[curCar] "junkyard"
-
+    # have player choose car
     return
 
 label chooseCar:
+    # Phase 1:
+        # family and friends cars (USED50FA.DG1 & USED50FB.DG1)
+        # various junkers and jalopies (this could include cars that start out broken where label carCheck will be used) (JUNK0CAR.DG1)
+        # front row of a junkyard (JUNK1.DG1 & JUNK2.DG1)
+        # back row of a disreputable used car lot (USED50-A.DG1 & USED50-B.DG1)
+    # Phase 2:
+        # newspaper want ads (USED54-B.DG1)
+        # various transportation cars (JUNK0CAT.DG1)
+        # descent used cars (USED54-A.DG1)
+        # (USED54-C.DG1 & USED54-D.DG1)
+    # Phase 3:
+        # 55-A
+        # 56-A
+        # 57-a
+        # 58-A
+    # Phase 4:
+        # 59-A
+        # 60-A
+        # 61-A
+        # 62-A
+    # Phase 5:
+        # 63-A
+        # 64-A
+        # 65-A
+        # hotrods
     player[curCar] "You can choose your own car or you can have the computer randomly choose a car for you."
     player[curCar] "If you choose your own car it will cost more but it will be in better shape."
     player[curCar] "If you have the computer choose then the car will come from the front row of a junkyard (prices less than $50)"
@@ -64,24 +147,594 @@ label chooseCar:
 
     return
 
+label assignCar:
+    $ engineStats[curCar][0] = int(cardets[1])
+    $ engineStats[curCar][2] = int(cardets[2])
+    $ weight[curCar][0] = int(cardets[7])
+    $ D[curCar] = float(cardets[8])
+    $ W[curCar] = float(cardets[9])
+    $ numGears[curCar] = int(cardets[10])
+    $ NTR[curCar] = numGears[curCar]
+    $ desc[curCar] = cardets[4] + cardets[5] + cardets[6]
+    $ gearRatios[curCar][4] = float(cardets[11])
+    $ gearRatios[curCar][3] = float(cardets[12])
+    $ gearRatios[curCar][2] = float(cardets[13])
+    $ gearRatios[curCar][1] = float(cardets[14])
+    $ gearRatios[curCar][5] = float(cardets[15])
+    $ VLCD[curCar] = int(cardets[17])
+    $ carYear[curCar] = int(cardets[18])
+    $ savings[curCar] = savings[curCar] - int(cardets[3])
+    $ carVal[curCar] = int(cardets[3])
+    $ MFR[curCar] = cardets[16]
+    $ NTR[curCar] = numGears[curCar]
+    $ TR[curCar] = cardets[19] or ""
+
+    $ curFile = renpy.file("cars/engines.dg1")
+    $ lines = curFile.read().splitlines()
+
+    $ engNum = 0 # compare this (lines 10210 - 10480) with lines 10810 - 10895 in P1X (both P1X and P1T have the same 10210 - 10480)
+    while engineStats[curCar][1] == 0: # while this car has no engine
+        $ engine = lines[engNum]
+        $ engine = engine.split(",")
+        if engine[0] == MFR[curCar] and int(engine[3]) == engineStats[curCar][2] and int(engine[1]) == engineStats[curCar][0]:
+            $ engineStats[curCar][3] = int(engine[4])
+            $ engineStats[curCar][4] = int(engine[5])
+            $ engineStats[curCar][5] = int(engine[6])
+            $ engineStats[curCar][6] = int(engine[7])
+            $ NC[curCar] = int(engine[8])
+            $ NB[curCar] = int(engine[9])
+            $ CR[curCar] = float(engine[10])
+            $ CAM[curCar] = engine[11]
+            $ BRTH[curCar] = int(engine[12])
+            $ engineStats[curCar][1] = float(engine[2])
+        $ engNum += 1
+
+    call carCheck
+    return
+
+label carCheck:# check for modifications needed on car immediately after purchasing
+    if engineStats[curCar][0] == 0:
+        jump f14260
+    else:
+        call f10210
+    return
+
 label modifications:
-    if round == 2:
+    if stage == 2:
         $ modsCost = 5
         $ savings[curCar] = savings[curCar] + 100 # why does their money increase for wanting mods?
         jump f15065
         #(if 'M' jump f15110)
 
-    elif round == 3:
+    elif stage == 3:
         jump f16010
 
-    elif round == 4:
+    elif stage == 4:
         jump f17010
+    return
+
+label f10010:
+    #REM: CHEV TRANSMISSION RATIOS
+    "       PLEASE INPUT THE 1ST GEAR RATIO OF THE TRANSMISSION OF YOUR CHOICE (line f10010)"#:INPUT L(L,4)
+
+label f10020:
+    if gearRatios[curCar][4] == 2.94:
+        $ numGears[curCar] = 3
+        $ gearRatios[curCar][2] = 1.68
+        $ gearRatios[curCar][3] = 2.94
+    elif gearRatios[curCar][4] == 3.06:
+        $ numGears[curCar] = 4
+        $ gearRatios[curCar][3] = 1.63
+        $ gearRatios[curCar][2] = 1.05
+        $ gearRatios[curCar][1] = 1
+        $ weight[curCar][0] = weight[curCar][0] + 150
+    elif gearRatios[curCar][4] == 2.85:
+        $ numGears[curCar] = 4
+        $ gearRatios[curCar][2] = 1.35
+        $ gearRatios[curCar][3] = 2.02
+        $ weight[curCar][0] = weight[curCar][0] + 25
+    elif gearRatios[curCar][4] == 2.47:
+        $ numGears[curCar] = 3
+        $ gearRatios[curCar][2] = 1.53
+        $ gearRatios[curCar][3] = 2.47
+    elif gearRatios[curCar][4] == 2.58:
+        $ numGears[curCar] = 3
+        $ gearRatios[curCar][2] = 1.48
+        $ gearRatios[curCar][3] = 2.58
+    elif gearRatios[curCar][4] == 3.62:
+        $ numGears[curCar] = 2
+        $ gearRatios[curCar][2] = 1.1
+        $ gearRatios[curCar][3] = 3.62 # original code has this as index 2 but should it be index 3? line 10060
+        $ weight[curCar][0] = weight[curCar][0] + 95
+        $ TR[curCar] = "PG"
+    elif gearRatios[curCar][4] == 3.96:
+        $ numGears[curCar] = 4
+        $ gearRatios[curCar][2] = 1.53
+        $ gearRatios[curCar][3] = 2.63
+        $ weight[curCar][0] = weight[curCar][0] + 198
+        $ TR[curCar] = "HYD"
+    elif gearRatios[curCar][4] == 3.97:
+        $ numGears[curCar] = 4
+        $ gearRatios[curCar][2] = 1.33
+        $ gearRatios[curCar][3] = 2.23
+        $ weight[curCar][0] = weight[curCar][0] + 198
+        $ TR[curCar] = "HYD"
+    elif gearRatios[curCar][4] == 2.5:
+        $ numGears[curCar] = 3
+        $ gearRatios[curCar][2] = 1.55
+        $ gearRatios[curCar][3] = 2.5
+        $ weight[curCar][0] = weight[curCar][0] + 125
+        $ TR[curCar] = "TH"
+    elif gearRatios[curCar][4] == 2.21:
+        $ numGears[curCar] = 3
+        $ gearRatios[curCar][2] = 1.33
+        $ gearRatios[curCar][3] = 2.21
+    elif gearRatios[curCar][4] == 2.2:
+        $ numGears[curCar] = 4
+        $ gearRatios[curCar][2] = 1.31
+        $ gearRatios[curCar][3] = 1.64
+        $ weight[curCar][0] = weight[curCar][0] + 25
+    elif gearRatios[curCar][4] == 2.54:
+        $ numGears[curCar] = 4
+        $ gearRatios[curCar][2] = 1.66
+        $ gearRatios[curCar][3] = 1.91
+        $ weight[curCar][0] = weight[curCar][0] + 25
+    elif gearRatios[curCar][4] == 2.56:
+        $ numGears[curCar] = 4
+        $ gearRatios[curCar][2] = 1.48
+        $ gearRatios[curCar][3] = 1.91
+        $ weight[curCar][0] = weight[curCar][0] + 25
+    elif gearRatios[curCar][4] == 2.65:
+        $ numGears[curCar] = 3
+        $ gearRatios[curCar][1] = 1
+        $ gearRatios[curCar][2] = 1.51
+        $ gearRatios[curCar][3] = 2.65
+    elif gearRatios[curCar][4] == 2.39:
+        $ gearRatios[curCar][3] = 2.39
+        $ gearRatios[curCar][2] = 1.53
+        $ numGears[curCar] = 3
+    if gearRatios[curCar][2] == 0:
+        jump f10010
+    if gearRatios[curCar][1] == 0:
+        $ gearRatios[curCar][1] = 1
+    return
+
+label f10210:
+    #REM: GET ENGINE DATA
+    $ SM = MFR[curCar]
+    if engineStats[curCar][2] == 999:
+        $ SM[curCar] = ""
+        jump f10210
+
+label f10235:
+    $ SP1 = engineStats[curCar][0]
+    $ SP3 = engineStats[curCar][2]
+    if SM == "LIST":
+        jump f10450
+    if SM == MFGR:
+        jump f10420
+    else:
+        jump f10500
+
+label f10420:
+    if SP3 == P3:
+        jump f10430
+    else:
+        jump f10500
+
+label f10430:
+    if SP1 == P1:
+        jump f10440
+    else:
+        jump f10500
+
+label f10440:
+    $ engineStats[curCar][0] = P1
+    $ engineStats[curCar][1] = P2
+    $ engineStats[curCar][2] = P3
+    $ engineStats[curCar][3] = P4
+    $ engineStats[curCar][4] = P5
+    $ engineStats[curCar][5] = P6
+    $ engineStats[curCar][6] = P7
+    $ NC[curCar] = NC
+    $ NB[curCar] = NB
+    $ CR[curCar] = CR
+    $ CAM[curCar] = CAM
+    $ BRTH[curCar] = BRTH
+
+label f10450:
+    "MFGR [MFGR], DISP=[P3], HP=[P1] @ [P5], TORQUE=[P6] @ [P7]"
+    if engineStats[curCar][4] == 0:
+        jump f10460
+    $ CL = CL + 1
+    return
+
+label f10460:
+    $ LL = LL + 1
+    if LL < 23:
+        jump f10500
+    $ LL = 1
+
+label f10500:
+    if engineStats[curCar][4] > 0:
+        return
+    "YOU CHOSE AN INELLIGIBLE HP/DISPLACEMENT COMBINATION - TRY AGAIN"
+    $ engineStats[curCar][0] = 0
+    $ engineStats[curCar][2] = 0
+    jump f10210
+
+label f12205:
+    if MFR(curCar) == "MOPAR":
+        if N[curCar] < 4:
+            jump f12250
+        player[curCar] "You have blown first gear on the old 4-speed."
+        "Your options are to avoid first gear or buy the available 3-speed."
+        "Another transmission will cost $50.  Enter 'B' to buy (if 'B' goto f12225)"#;I$
+        $ numGears[curCar] = 3
+        $ gearRatios[curCar][4] = 0
+        if engineStats[curCar][0] > 135:
+            jump f12270
+        else:
+            return
+
+label f12225:
+    $ gearRatios[curCar][4] = 0
+    $ gearRatios[curCar][3] = 2.67
+    $ gearRatios[curCar][2] = 1.55
+    $ numGears[curCar] = 3
+    $ SV[curCar] = SV[curCar] - 50
+    if engineStats[curCar][0] > 135:
+        jump f12270
+    else:
+        return
+
+label f12250:
+    if gearRatios[curCar][3] < 2.5:
+        jump f12255
+    if engineStats[curCar][0] > 135:
+        jump f12270
+    else:
+        return
+
+label f12255:
+    player[curCar] "Your clutch is gone.  It will cost you $50 to replace it."#;N$(L)
+    "You have no alternative; press enter to continue"#;I$
+    $ SV[curCar] = SV[curCar] - 50
+    if engineStats[curCar][0] < 136:
+        return
+
+label f12270:
+    if engineStats[curCar][4] < 3500:
+        return
+    if engineStats[curCar][1] < 4100:
+        return
+    "You have pushed the old straight 8 beyond its limits."
+    "It is going to blow up soon.  Perhaps you should consider selling."
+    if stage == 2:
+        $ engineStats[curCar][0] = 2
+    else:
+        $ engineStats[curCar][0] = 135
+    return
+
+label f12450:
+    if carYear[curCar] < 46:
+        $ VLPCT = .8
+    else:
+        $ VLPCT = .9
+    if VLCD[curCar] > 6:
+        $ VLPCT = VLPCT + .1
+    if VLCD[curCar] > 7:
+        $ VLPCT = VLPCT + .1
+    if VLCD[curCar] > 8:
+        $ VLPCT = VLPCT + .1
+    return
+
+label f12500:
+    if VLCD[curCar] > 4:
+        jump f12550
+    if MFR[curCar]) == "FF":
+        jump f12550
+    if YR[curCar] > 48:
+        $ VLPCT = .9
+    if YR[curCar] < 49:
+        $ VLPCT = .6
+    if YR[curCar] < 46:
+        $ VLPCT = .3
+    jump f12560
+
+label f12550:
+    $ VLPCT = .9
+
+label f12560:
+    if VLCD[curCar] < 4:
+        $ VLPCT = VLPCT - .1
+    if VLCD[curCar] > 6:
+        $ VLPCT = VLPCT + .1
+    if VLCD[curCar] > 7:
+        $ VLPCT = VLPCT + .1
+    if VLCD[curCar] > 8:
+        $ VLPCT = VLPCT + .1
+    return
+
+label f14280:
+    if VLCD[curCar] < 2:
+        call f21000
+
+label f14300:
+    if engineStats[curCar][0] > 0:
+        jump f14500
+
+label f14310:
+    player[curCar] "Since your car won't even run, you'd better look into buying an engine."
+
+label f14320:
+    call f14350
+
+label f14330:
+    jump f14500
+
+label f14350:
+    #OPEN "I",#1,"junk0ENG.DG1
+
+label f14360:
+    #WHILE NOT EOF(1)
+
+    # loop to find engine ?
+
+label f14365:
+    #INPUT#1,P1,P3,PR,DESC1$,O,MFGR$,MFGS$
+
+label f14370:
+    if MFR[curCar] == MFGS:
+        jump f14380
+
+label f14375:
+    jump f14390
+
+label f14380:
+    player[curCar] "[P1] HP, [P3] CID, WILL COST YOU $[PR]"
+
+label f14381:
+    if O == 0:
+        jump f14385
+
+label f14383:
+    "THE ADDED WEIGHT OF THIS ENGINE WILL BE [O] POUNDS"
+
+label f14385:
+    "[DESC1]"
+
+label f14388:
+    "PRESS ENTER FOR NEXT ENGINE"
+
+label f14390:
+    #WEND
+
+label f14400:
+    #CLOSE #1
+
+label f14410:
+    "INPUT THE HORSEPOWER OF THE ENGINE YOU WANT"
+    # P1W
+
+label f14420:
+    #OPEN "I",#1,"junk0ENG.DG1
+
+label f14425:
+    #WHILE NOT EOF(1)
+
+    # loop to assign engine
+
+label f14430:
+    #INPUT#1,P1,P3,PR,DESC1$,O,MFGR$,MFGS$
+
+label f14435:
+    if MFR[curCar] == MFGS:
+        jump f14440
+    else:
+        jump f14490
+
+label f14440:
+    if P1W == P1:
+        jump f14450
+    else:
+        jump f14490
+
+label f14450:
+    $ engineStats[curCar][0] = P1
+    $ MFR[curCar] = MFGR
+    $ weight[curCar][0] = weight[curCar][0] + O # probably a variable read from the file
+
+label f14460:
+    $ engineStats[curCar][2] = P3
+    $ SV[curCar] = SV[curCar] - PR
+
+label f14470:
+    $ VL[curCar] = VL[curCar] + (P1 * .5) + (P3 * .2) - (O * .1) # probably a variable read from the file
+
+label f14490:
+    #WEND
+
+label f14495:
+    #CLOSE #1
+
+label f14497:
+    call f10200
+
+label f14498:
+    call f12030
+
+label f14499:
+    return
+
+label f14500:
+    #REM
+
+label f14510:
+    if numGears[curCar] > 0:
+        jump f14550
+
+label f14520:
+    player[curCar] "WHEN YOU TRY TO DRIVE THE CAR, YOU FIND THE CLUTCH IS OUT"
+
+label f14530:
+    $ cost = engineStats[curCar][0] / 3
+    player[curCar] "IT WILL COST YOU $[cost] TO REPLACE IT"
+
+label f14535:
+    #INPUT "PRESS ENTER TO CONTINUE";I$
+
+label f14540:
+    $ SV[curCar] = SV[curCar] - engineStats[curCar][0] / 3
+
+label f14542:
+    $ VL[curCar] = VL[curCar] + 20
+
+label f14545:
+    call f12030
+
+label f14550:
+    if numGears[curCar] < 3:
+        call f14560
+
+label f14555:
+    jump f14800
+
+label f14560:
+    if numGears[curCar] = 1:
+        jump f14600
+
+label f14562:
+    if YR[curCar] > 49:
+        return
+
+label f14565:
+    $ cost = engineStats[curCar][2] / 9
+    player[curCar] "YOUR TRANSMISSION CRUNCHES IN FIRST GEAR.  IT WILL COST YOU $[cost] TO REBUILD    IT NOW - OR YOU CAN LOOK FOR ANOTHER TRANSMISSION"
+
+label f14570:
+    player[curCar] "DO YOU WANT TO REBUILD (R) OR LOOK FOR ANOTHER TRANSMISSION (L) (if L: jump f14600)"
+
+label f14580:
+    #if I$="L":jump f14600
+
+label f14585:
+    $ SV[curCar] = SV[curCar] - gearRatios[curCar][3] / 9
+
+label f14590:
+    $ numGears[curCar] = 3
+    $ VL[curCar] = VL[curCar] + 10
+
+label f14595:
+    jump f14795
+
+label f14600:
+    #REM
+
+label f14605:
+    if YR[curCar] > 49:
+        return
+
+label f14610:
+    #OPEN "I",#1,"junk0-TR.DG1
+
+label f14620:
+    #WHILE NOT EOF(1)
+
+label f14630:
+    #INPUT#1,N(3),L(3,1),L(3,2),L(3,3),L(3,4),DESC1$,O,MFGR$,PR,L(3,5)
+
+    # read in variable tempN rather than N(3)
+    # need to use tempL[] rather than L(3,?)
+
+label f14640:
+    if MFR[curCar] = MFGR:
+        jump f14660
+
+label f14650:
+    jump f14690
+
+label f14660:
+    player[curCar] "[DESC1], [tempN] SPEED, LOW GEAR = [tempL[tempN]], WILL COST YOU $[PR]"
+
+label f14665:
+    if O = 0:
+        jump f14690
+
+label f14670:
+    player[curCar] "THE ADDED WEIGHT OF THIS TRANSMISSION WILL BE [O] POUNDS"
+
+label f14690:
+    #WEND
+
+label f14700:
+    #CLOSE #1
+
+label f14710:
+    player[curCar] "INPUT THE LOW GEAR RATIO OF THE TRANSMISSION YOU WANT"
+    # LLW
+
+label f14720:
+    #OPEN "I",#1,"junk0-TR.DG1
+
+label f14725:
+    #WHILE NOT EOF(1)
+
+label f14730:
+    #INPUT#1,N(3),L(3,1),L(3,2),L(3,3),L(3,4),DESC1$,O,MFGR$,PR,L(3,5)
+
+    # read in variable tempN rather than N(3)
+
+label f14735:
+    if MFR[curCar] = MFGR:
+        jump f14740
+    else:
+        jump f14790
+
+label f14740:
+    if tempL[tempN] = LLW:
+        jump f14750
+    else:
+        jump f14790
+
+label f14745:
+    $ O[curCar][0] = O[curCar][0] + O
+
+label f14750:
+    $ gearRatios[curCar][1] = tempL[1]
+    $ gearRatios[curCar][2] = tempL[2]
+    $ gearRatios[curCar][3] = tempL[3]
+    $ gearRatios[curCar][4] = tempL[4]
+
+label f14755:
+    if tempL[5] > 0:
+        $ gearRatios[curCar][5] = tempL[5]
+
+label f14760:
+    $ numGears[curCar] = tempN
+    $ SV[curCar] = SV[curCar] - PR
+
+label f14770:
+    if numGears[curCar] = 4:
+        $ VL[curCar] = VL[curCar] + 50
+    else:
+        $ VL[curCar] = VL[curCar] + 20
+
+label f14790:
+    #WEND
+
+label f14792:
+    #CLOSE #1
+
+label f14795:
+    call f12030
+
+label f14799:
     return
 
 label f15065:
     if engineStats[curCar][2] == 323: # the car is broke and needs a repair
-        if MFR(curCar) == "MOPAR":
-            jump f12205
+        call f12205
 
 label f15110:
     #player[curCar] "\        \ YOU HAVE $[SV[curCar]] TO MODIFY YOUR [DSCR[curCar]] - COST IS $[MD] PER HP."
@@ -91,11 +744,11 @@ label f15120:
     #player[curCar] "YOU HAVE [P[curCar][0]] HP AND $[SV[curCar]]"
     #stats line
 
-    player[curCar] "ENTER 'N' TO SKIP MODIFICATIONS THIS TIME. (if 'N' jump f15520, if 'Y' jump f15150)"
+    #player[curCar] "ENTER 'N' TO SKIP MODIFICATIONS THIS TIME. (if 'N' jump f15520, if 'Y' jump f15150)"
 
 label f15150:
     #OPEN "I",#1,"ENGINEX3"
-    "if the player wants modifications, read from file ENGINEX3. (line 15150)"
+    #"if the player wants modifications, read from file ENGINEX3. (line 15150)"
 
 label f15160:
     $ SM == MFR[curCar]
@@ -103,13 +756,14 @@ label f15160:
 label f15170:
     if SM == "":
         #INPUT "MANUFACTURER";SM$
-        "read the manufacturer from the file?"
+        "this should never be reached (f15170)"
 
 label f15180:
     $ SP3 = engineStats[curCar][2]
 
 label f15190:
     $ SP1 = 0
+    "read from file and output engine options to player (f15190)"
 
 label f15220:
     if SM == MFGR:
@@ -172,7 +826,7 @@ label f15370:
 
 label f15380:
     if WORK3 < 0:
-        PRINT "YOU CAN'T AFFORD THAT - TRY AGAIN"
+        player[curCar] "YOU CAN'T AFFORD THAT - TRY AGAIN"
         jump f15340
 
 label f15390:
@@ -351,7 +1005,7 @@ label f16325:
     $ HX = 0
 
 label f16336:
-    if C1 > round:
+    if C1 > stage:
         jump f16375
 
 label f16340:
@@ -545,7 +1199,7 @@ label f16670:
 
 label f16675:
     if WORK3 < 0:
-        PRINT "YOU CAN'T AFFORD THAT - TRY AGAIN"
+        player[curCar] "YOU CAN'T AFFORD THAT - TRY AGAIN"
         jump f16655
 
 label f16680:
@@ -689,7 +1343,7 @@ label f17510:
     $ HX = 0
 
 label f17535:
-    if C1 > round:
+    if C1 > stage:
         jump f17610
 
 label f17540:

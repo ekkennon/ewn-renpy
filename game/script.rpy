@@ -7,31 +7,34 @@ init python:
 # player variables:
 define player = [Character(), Character()] # N$() is a string array of players' names
 default savings = [0, 0] #the amount of money each player has, orininally SV
-define carVal = [99,139] #[2], value of player's car, originally VL
+define carVal = [0,0] #[99,139] #[2], value of player's car, originally VL
 define curCar = 1 # originally L, for some loops in original code
 define lane = 1
 define LT = [0,0] # the low time of each player
 
+#14000 REM: IF numGears(curCar)=0 THEN CLUTCH IS OUT (14510)p1x
+#14010 REM: IF numGears(curCar)<3 THEN TRANSMISSION NEEDS WORK (14560 - SUBROUTINE)p1x
+#14020 REM: IF gearRatios(curCar,5)=0 THEN REAR END IS OUT (14800)p1x
 # car variables:
-define gearRatios = [[-1,1,1.76,3.11,0,3.78],[-1,1,1.66,2.94,0,4.11]] # [2,5] placeholder,1st,2nd,3rd,4th(0 on 3-speed transmissions),rear-end ratio, origianlly L
-define engineStats = [[85,4466.667,221,1,3800,160,2000,0,0], [103,4100,248,1,3800,196,1800,0,0]] # [2,9] various details, maybe related to the engine. hp,shifting RPM,cid,?,hp @,torque,torque @,?,?  orininally P
-define weight = [[2791,0,0],[3355,0,0]] # [2,3] originally O
-define D = [2.3,2.3]
-define W = [5,5]
-define numGears = [3,3] # originally N
-define NTR = [3,3]
-define desc = ["40 FORD DELUXE COUPE. THE FLATHEAD V8 SEEMS TO RUN GOOD. VERY MINOR RUST - PAINT A LITTLE FADED","49 PONTIAC CHIEFTAIN BUSINESS COUPE. THIS IS A RARE 8-CYLINDER MODEL. IT SHOWS WEAR BUT STILL RUNS OK"] # originally DSCR
-define VLCD = [6,5]
-define carYear = [40,50] # originally YR
-define MFR = ["FF","PONT"] # manufacturer, is this the car manufacturer or the engine manufacturer?
+define gearRatios = [[-1,0,0,0,0,0],[-1,0,0,0,0,0]] #[[-1,1,1.76,3.11,0,3.78],[-1,1,1.66,2.94,0,4.11]] # [2,5] placeholder,1st,2nd,3rd,4th(0 on 3-speed transmissions),rear-end ratio, origianlly L
+define engineStats = [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]] #[[85,4466.667,221,1,3800,160,2000,0,0], [103,4100,248,1,3800,196,1800,0,0]] # [2,9] various details, maybe related to the engine. hp,shifting RPM,cid,?,hp @,torque,torque @,?,?  orininally P
+define weight = [[0,0,0],[0,0,0]] #[[2791,0,0],[3355,0,0]] # [2,3] originally O
+define D = [0.0,0.0] #[2.3,2.3]
+define W = [0,0] #[5,5]
+define numGears = [0,0] #[3,3] # originally N
+define NTR = [0,0] #[3,3]
+define desc = ["",""] #["40 FORD DELUXE COUPE. THE FLATHEAD V8 SEEMS TO RUN GOOD. VERY MINOR RUST - PAINT A LITTLE FADED","49 PONTIAC CHIEFTAIN BUSINESS COUPE. THIS IS A RARE 8-CYLINDER MODEL. IT SHOWS WEAR BUT STILL RUNS OK"] # originally DSCR
+define VLCD = [0,0] #[6,5]
+define carYear = [0,0] #[40,50] # originally YR
+define MFR = ["",""] #["FF","PONT"] # manufacturer, is this the car manufacturer or the engine manufacturer?
 define TR = ["",""]
 
 # engine variables:
-define NC = [1,1]
-define NB = [2,2]
-define CR = [6.3,6.5]
-define CAM = ["S/F","S/F"]
-define BRTH = [3,3]
+define NC = [0,0] #[1,1]
+define NB = [0,0] #[2,2]
+define CR = [0.0,0.0] #[6.3,6.5]
+define CAM = ["",""] #["S/F","S/F"]
+define BRTH = [0,0] #[3,3]
 
 # race variables:
 define seconds = 0 # number of seconds into race, originally T
@@ -84,11 +87,11 @@ define SWT16 = -1
 define SWT17 = -1
 define SWT18 = -1
 define PV = [0,0]
-define HIS = 0
+define HIS = 0 # high speed? (the fastest speed, similar to low time)
 
 # other variables:
 define CL = 0 # not sure anything about this variable  10453 CL=CL+1
-define round = 0 # originally ROUND
+define stage = 0 # originally ROUND
 define race = 0
 define phase = 0
 define JOB = ""
@@ -105,6 +108,7 @@ define SP1 = 0
 define SP3 = 0
 define WP1 = 0
 define raceLoop = 0
+define FINYR = 54
 
 screen carloc1:
     imagemap:
@@ -160,40 +164,43 @@ label phase1:
     $ savings[0] += 250
     $ savings[1] += 250
 
-    $ round += 1
+    $ stage += 1
     $ race += 1
     call chooseCarMod
-    "Beginning Race #[round]"
+    "Beginning Race #[stage]"
     call race  # race 1
 
-    $ round += 1
+    $ stage += 1
     $ race += 1
     call chooseCarMod
-    "Beginning Race #[round]"
+    "Beginning Race #[stage]"
     call race  # race 2
 
-    $ round += 1
+    $ stage += 1
     $ race += 1
-    "Beginning Race #[round]"
+    "Beginning Race #[stage]"
     #call race  # race 3
 
-    $ round += 1
+    $ stage += 1
     $ race += 1
-    "Beginning Race #[round]"
+    "Beginning Race #[stage]"
     #call race  # race 4
 
+    # in the original game the player now has a choice to stop or continue.
+    # if the player chooses to stop in P1T the program ends.
+    # if the player chooses to stop in P1X, Early1 is run.
     jump phase2
 
 label phase2:
     $ phase += 1
-    $ round = 0
+    $ stage = 0
     "Beginning Phase [phase]."
 
     "You will now swap lanes."
-    $ round += 1
+    $ stage += 1
     $ race += 1
     call chooseCarMod
-    "Beginning Race #[round]"
+    "Beginning Race #[stage]"
     call race  # race 1
 
     "End of Phase [phase]."
@@ -202,14 +209,14 @@ label phase2:
 
 label phase3:
     $ phase += 1
-    $ round = 0
+    $ stage = 0
     "Beginning Phase [phase]."
 
     "You will now swap lanes."
-    $ round += 1
+    $ stage += 1
     $ race += 1
     call chooseCarMod
-    "Beginning Race #[round]"
+    "Beginning Race #[stage]"
     call race  # race 1
 
     "End of Phase [phase]."
@@ -217,14 +224,14 @@ label phase3:
 
 label phase4:
     $ phase += 1
-    $ round = 0
+    $ stage = 0
     "Beginning Phase [phase]."
 
     "You will now swap lanes."
-    $ round += 1
+    $ stage += 1
     $ race += 1
     call chooseCarMod
-    "Beginning Race #[round]"
+    "Beginning Race #[stage]"
     call race  # race 1
 
     "End of Phase [phase]."
@@ -232,14 +239,14 @@ label phase4:
 
 label phase5:
     $ phase += 1
-    $ round = 0
+    $ stage = 0
     "Beginning Phase [phase]."
 
     "You will now swap lanes."
-    $ round += 1
+    $ stage += 1
     $ race += 1
     call chooseCarMod
-    "Beginning Race #[round]"
+    "Beginning Race #[stage]"
     call race  # race 1
 
     "End of Phase [phase]."

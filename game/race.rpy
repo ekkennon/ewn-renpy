@@ -13,10 +13,10 @@ label race:
         $ torque = engineStats[curCar][5]
         $ torqueat = engineStats[curCar][6]
         $ disp = engineStats[curCar][2]
-        $ shift = engineStats[curCar][1]
+        $ shift = round(engineStats[curCar][1])
         player[curCar] "HP = [hp]  @ [hpat]  TORQUE = [torque] @ [torqueat]  DISP = [disp]"
         player[curCar] "LANE [lane] IS PROGRAMMED TO SHIFT AT [shift] RPM" # 932 (I changed the shift calculation from the original, did not work as well when the number started as a decimal)
-        "player has the option to change Shifting RPM - lines 960 to 1000"
+        "player has the option to change Shifting RPM - lines 960 to 1000 (use P1X not P1T)"
         if phase % 2 == 0:
             $ curCar += 1
         elif phase % 2 == 1:
@@ -47,12 +47,16 @@ label race:
     $ racing = True
     while racing: # each second of the race
         if seconds > 0:
-            $ mph1 = feetSec[0] * 3600 / 5280
-            $ mph2 = 3600 * feetSec[1] / 5280
+            $ mph1 = round(3600 * feetSec[0] / 5280, 1)
+            $ mph2 = round(3600 * feetSec[1] / 5280, 1)
+            $ d0 = round(distance[0], 1)
+            $ d1 = round(distance[1], 1)
+            $ rpm0 = int(round(dispRPM[0]))
+            $ rpm1 = int(round(dispRPM[1]))
             if phase % 2 == 0:
-                "[mph1] MPH [distance[0]] FEET [dispRPM[0]] RPM ||     [seconds].[tenthSec][T2]     ||[mph2] MPH  [distance[1]] FEET [dispRPM[1]] RPM"
+                "[mph1] MPH [d0] FEET [rpm0] RPM ||     [seconds].[tenthSec][T2]     ||[mph2] MPH  [d1] FEET [rpm1] RPM"
             elif phase % 2 == 1:
-                "[mph2] MPH [distance[1]] FEET [dispRPM[1]] RPM ||     [seconds].[tenthSec][T2]     ||[mph1] MPH  [distance[0]] FEET [dispRPM[0]] RPM"
+                "[mph2] MPH [d1] FEET [rpm1] RPM ||     [seconds].[tenthSec][T2]     ||[mph1] MPH  [d0] FEET [rpm0] RPM"
 
         while raceLoop < 20: # each player's tenth of a second
             $ curCar = raceLoop % 2 # will this continue to work correctly with other parts of the game starting at $ curCar = phase % 2
@@ -125,16 +129,18 @@ label f1260:
     jump f2390
 
 label f1360:
+    $ d0 = round(distance[0], 1)
+    $ d1 = round(distance[1], 1)
     if phase % 2 == 0:
         if curCar == 0:
-            "STOPS BURNING AT  [distance[0]] FEET   ||     [seconds].[tenthSec][T2]     ||            [distance[1]] FEET"
+            "STOPS BURNING AT  [d0] FEET   ||     [seconds].[tenthSec][T2]     ||            [d1] FEET"
         elif curCar == 1:
-            "           [distance[0]] FEET          ||     [seconds].[tenthSec][T2]     ||STOPS BURNING AT  [distance[1]] FEET"
+            "           [d0] FEET          ||     [seconds].[tenthSec][T2]     ||STOPS BURNING AT  [d1] FEET"
     elif phase % 2 == 1:
         if curCar == 0:
-            "           [distance[1]] FEET          ||     [seconds].[tenthSec][T2]     ||STOPS BURNING AT  [distance[0]] FEET"
+            "           [d1] FEET          ||     [seconds].[tenthSec][T2]     ||STOPS BURNING AT  [d0] FEET"
         elif curCar == 1:
-            "STOPS BURNING AT  [distance[1]] FEET   ||     [seconds].[tenthSec][T2]     ||            [distance[0]] FEET"
+            "STOPS BURNING AT  [d1] FEET   ||     [seconds].[tenthSec][T2]     ||            [d0] FEET"
 
 label f1380:
     $ Q[curCar] = 1
@@ -195,17 +201,16 @@ label f1630:
     if distance[0] > distance[1]:
         jump f1780
 
-    $ T3 = (distance[1] - 5280 / 4) / feetSec[1]
-    $ seconds = seconds + (tenthSec / 10) - T3
-    $ distance[1] = distance[1] - feetSec[1] * T3
-    $ distance[0] = distance[0] - feetSec[0] * T3
-    $ distance[1] = distance[1] - feetSec[1] * T3
-
+    $ T3 = (distance[1] - 1320) / feetSec[1]
+    $ seconds = round(seconds + (tenthSec / 10) - T3, 2)
+    #$ distance[1] = distance[1] - feetSec[1] * T3
+    $ distance[0] = round(distance[0] - feetSec[0] * T3, 1)
+    $ distance[1] = round(distance[1] - feetSec[1] * T3, 1)
     if phase % 2 == 0:
-        "           [distance[0]] FEET          ||     [seconds].[tenthSec][T2] --->||  LANE 2 WINNER"
+        "           [distance[0]] FEET          ||     [seconds] --->||  LANE 2 WINNER"
         $ LWIN = 2 # the player in lane 2 won
     elif phase % 2 == 1:
-        "       LANE  1   WINNER       ||<--- [seconds].[tenthSec][T2]     ||            [distance[0]] FEET"
+        "       LANE  1   WINNER       ||<--- [seconds]     ||            [distance[0]] FEET"
         $ LWIN = 1
     $ racing = False
     $ raceLoop = 20
@@ -213,8 +218,8 @@ label f1630:
     $ WS = feetSec[1] * 3600 / 5280
     $ WIN2 = WIN2 + 1
     $ LWINT = seconds
-    $ mph1 = feetSec[0] * 3600 / 5280
-    $ mph2 = feetSec[1] * 3600 / 5280
+    $ mph1 = 3600 * feetSec[0] / 5280
+    $ mph2 = 3600 * feetSec[1] / 5280
     if phase % 2 == 0:
         " [mph1] MPH    [dispRPM[0]] RPM       ||               ||   [mph2] MPH  [dispRPM[1]] RPM"
     elif phase % 2 == 1:
@@ -239,22 +244,22 @@ label f1710:
     jump f11000
 
 label f1780:
-    $ T3 = (distance[0] - 5280 / 4) / feetSec[0]
-    $ seconds = seconds + (tenthSec / 10) - T3
-    $ distance[0] = 5200 / 4
-    $ distance[1] = distance[1] - feetSec[1] * T3
-    $ distance[0] = distance[0] - feetSec[0] * T3
+    $ T3 = (distance[0] - 1320) / feetSec[0]
+    $ seconds = round(seconds + (tenthSec / 10) - T3, 2)
+    #$ distance[0] = 5200 / 4
+    $ distance[1] = round(distance[1] - feetSec[1] * T3, 1)
+    $ distance[0] = round(distance[0] - feetSec[0] * T3, 1)
     if phase % 2 == 0:
-        "       LANE  1   WINNER       ||<--- [seconds].[tenthSec][T2]     ||            [distance[1]] FEET"
+        "       LANE  1   WINNER       ||<--- [seconds]     ||            [distance[1]] FEET"
         $ LWIN = 1
     elif phase % 2 == 1:
-        "           [distance[1]] FEET          ||     [seconds].[tenthSec][T2] --->||  LANE 2 WINNER"
+        "           [distance[1]] FEET          ||     [seconds] --->||  LANE 2 WINNER"
         $ LWIN = 2
     $ racing = False
     $ raceLoop = 20
     $ playerWin = 0
-    $ mph1 = feetSec[0] * 3600 / 5280
-    $ mph2 = feetSec[1] * 3600 / 5280
+    $ mph1 = 3600 * feetSec[0] / 5280
+    $ mph2 = 3600 * feetSec[1] / 5280
     if phase % 2 == 0:
         "[mph1] MPH  [dispRPM[0]] RPM          ||               ||    [mph2] MPH   [dispRPM[1]] RPM"
     elif phase % 2 == 1:
@@ -303,12 +308,14 @@ label f2064:
 label f2115:
     if distance[1] > 1320:
         jump f1780
-    $ mph = 3600 * feetSec[0] / 5280
+    $ mph = round(3600 * feetSec[0] / 5280, 1)
+    $ rpm0 = round(dispRPM[0])
+    $ d1 = round(distance[1], 1)
     if curCar == 0:
         if phase % 2 == 0:
-            "SHIFTING - [dispRPM[0]] RPM, [mph] MPH  ||     [seconds].[tenthSec][T2]     ||            [distance[1]] FEET "
+            "SHIFTING - [rpm0] RPM, [mph] MPH  ||     [seconds].[tenthSec][T2]     ||            [d1] FEET "
         elif phase % 2 == 1:
-            "           [distance[1]] FEET          ||     [seconds].[tenthSec][T2]     ||SHIFTING - [dispRPM[0]] RPM, [mph] MPH "
+            "           [d1] FEET          ||     [seconds].[tenthSec][T2]     ||SHIFTING - [rpm0] RPM, [mph] MPH "
     $ numGears[curCar] -= 1
     call gears
 
@@ -348,12 +355,14 @@ label f2224:
 label f2275:
     if distance[0] > 1320:
         jump f1780
-    $ mph = 3600 * feetSec[1] / 5280
+    $ mph = round(3600 * feetSec[1] / 5280, 1)
+    $ rpm1 = round(dispRPM[1])
+    $ d0 = round(distance[0], 1)
     if curCar == 1:
         if phase % 2 == 0:
-            "           [distance[0]] FEET          ||     [seconds].[tenthSec][T2]     ||SHIFTING - [dispRPM[1]] RPM, [mph] MPH "
+            "           [d0] FEET          ||     [seconds].[tenthSec][T2]     ||SHIFTING - [rpm1] RPM, [mph] MPH "
         elif phase % 2 == 1:
-            "SHIFTING - [dispRPM[1]] RPM, [mph] MPH  ||     [seconds].[tenthSec][T2]     ||            [distance[0]] FEET "
+            "SHIFTING - [rpm1] RPM, [mph] MPH  ||     [seconds].[tenthSec][T2]     ||            [d0] FEET "
     $ numGears[curCar] -= 1
     call gears
 
@@ -597,170 +606,20 @@ label f6335:
     $ weight[curCar][1] = 1
     return
 
-label f10010:
-    #REM: CHEV TRANSMISSION RATIOS
-    "       PLEASE INPUT THE 1ST GEAR RATIO OF THE TRANSMISSION OF YOUR CHOICE (line f10010)"#:INPUT L(L,4)
-
-label f10020:
-    if gearRatios[[curCar][4]] == 2.94:
-        $ numGears[curCar] = 3
-        $ gearRatios[[curCar][2]] = 1.68
-        $ gearRatios[[curCar][3]] = 2.94
-    elif gearRatios[[curCar][4]] == 3.06:
-        $ numGears[curCar] = 4
-        $ gearRatios[[curCar][3]] = 1.63
-        $ gearRatios[[curCar][2]] = 1.05
-        $ gearRatios[[curCar][1]] = 1
-        $ weight[[curCar][0]] = weight[[curCar][0]] + 150
-    elif gearRatios[[curCar][4]] == 2.85:
-        $ numGears[curCar] = 4
-        $ gearRatios[[curCar][2]] = 1.35
-        $ gearRatios[[curCar][3]] = 2.02
-        $ weight[[curCar][0]] = weight[[curCar][0]] + 25
-    elif gearRatios[[curCar][4]] == 2.47:
-        $ numGears[curCar] = 3
-        $ gearRatios[[curCar][2]] = 1.53
-        $ gearRatios[[curCar][3]] = 2.47
-    elif gearRatios[[curCar][4]] == 2.58:
-        $ numGears[curCar] = 3
-        $ gearRatios[[curCar][2]] = 1.48
-        $ gearRatios[[curCar][3]] = 2.58
-    elif gearRatios[[curCar][4]] == 3.62:
-        $ numGears[curCar] = 2
-        $ gearRatios[[curCar][2]] = 1.1
-        $ gearRatios[[curCar][3]] = 3.62 # original code has this as index 2 but should it be index 3? line 10060
-        $ weight[[curCar][0]] = weight[[curCar][0]] + 95
-        $ TR[curCar] = "PG"
-    elif gearRatios[[curCar][4]] == 3.96:
-        $ numGears[curCar] = 4
-        $ gearRatios[[curCar][2]] = 1.53
-        $ gearRatios[[curCar][3]] = 2.63
-        $ weight[[curCar][0]] = weight[[curCar][0]] + 198
-        $ TR[curCar] = "HYD"
-    elif gearRatios[[curCar][4]] == 3.97:
-        $ numGears[curCar] = 4
-        $ gearRatios[[curCar][2]] = 1.33
-        $ gearRatios[[curCar][3]] = 2.23
-        $ weight[[curCar][0]] = weight[[curCar][0]] + 198
-        $ TR[curCar] = "HYD"
-    elif gearRatios[[curCar][4]] == 2.5:
-        $ numGears[curCar] = 3
-        $ gearRatios[[curCar][2]] = 1.55
-        $ gearRatios[[curCar][3]] = 2.5
-        $ weight[[curCar][0]] = weight[[curCar][0]] + 125
-        $ TR[curCar] = "TH"
-    elif gearRatios[[curCar][4]] == 2.21:
-        $ numGears[curCar] = 3
-        $ gearRatios[[curCar][2]] = 1.33
-        $ gearRatios[[curCar][3]] = 2.21
-    elif gearRatios[[curCar][4]] == 2.2:
-        $ numGears[curCar] = 4
-        $ gearRatios[[curCar][2]] = 1.31
-        $ gearRatios[[curCar][3]] = 1.64
-        $ weight[[curCar][0]] = weight[[curCar][0]] + 25
-    elif gearRatios[[curCar][4]] == 2.54:
-        $ numGears[curCar] = 4
-        $ gearRatios[[curCar][2]] = 1.66
-        $ gearRatios[[curCar][3]] = 1.91
-        $ weight[[curCar][0]] = weight[[curCar][0]] + 25
-    elif gearRatios[[curCar][4]] == 2.56:
-        $ numGears[curCar] = 4
-        $ gearRatios[[curCar][2]] = 1.48
-        $ gearRatios[[curCar][3]] = 1.91
-        $ weight[[curCar][0]] = weight[[curCar][0]] + 25
-    elif gearRatios[[curCar][4]] == 2.65:
-        $ numGears[curCar] = 3
-        $ gearRatios[[curCar][1]] = 1
-        $ gearRatios[[curCar][2]] = 1.51
-        $ gearRatios[[curCar][3]] = 2.65
-    elif gearRatios[[curCar][4]] == 2.39:
-        $ gearRatios[[curCar][3]] = 2.39
-        $ gearRatios[[curCar][2]] = 1.53
-        $ numGears[curCar] = 3
-    if gearRatios[[curCar][2]] == 0:
-        jump f10010
-    if gearRatios[[curCar][1]] == 0:
-        $ gearRatios[[curCar][1]] = 1
-    return
-
-label f10210:
-    #REM: GET ENGINE DATA
-    $ SM = MFR[curCar]
-    if engineStats[[curCar][2]] == 999:
-        $ SM[curCar] = ""
-    jump f10210
-
-label f10235:
-    $ SP1 = engineStats[[curCar][0]]
-    $ SP3 = engineStats[[curCar][2]]
-    if SM == "LIST":
-        jump f10450
-    if SM == MFGR:
-        jump f10420
-    else:
-        jump f10500
-
-label f10420:
-    if SP3 == P3:
-        jump f10430
-    else:
-        jump f10500
-
-label f10430:
-    if SP1 == P1:
-        jump f10440
-    else:
-        jump f10500
-
-label f10440:
-    $ engineStats[[curCar][0]] = P1
-    $ engineStats[[curCar][1]] = P2
-    $ engineStats[[curCar][2]] = P3
-    $ engineStats[[curCar][3]] = P4
-    $ engineStats[[curCar][4]] = P5
-    $ engineStats[[curCar][5]] = P6
-    $ engineStats[[curCar][6]] = P7
-    $ NC[curCar] = NC
-    $ NB[curCar] = NB
-    $ CR[curCar] = CR
-    $ CAM[curCar] = CAM
-    $ BRTH[curCar] = BRTH
-
-label f10450:
-    "MFGR [MFGR], DISP=[P3], HP=[P1] @ [P5], TORQUE=[P6] @ [P7]"
-    if engineStats[[curCar][4]] == 0:
-        jump f10460
-    $ CL = CL + 1
-    return
-
-label f10460:
-    $ LL = LL + 1
-    if LL < 23:
-        jump f10500
-    $ LL = 1
-
-label f10500:
-    if engineStats[[curCar][4]] > 0:
-        return
-    "YOU CHOSE AN INELLIGIBLE HP/DISPLACEMENT COMBINATION - TRY AGAIN"
-    $ engineStats[[curCar][0]] = 0
-    $ engineStats[[curCar][2]] = 0
-    jump f10210
-
 label f11000:
     call f11500
     $ RVL = 10
     player[playerWin] "Congratulations! You have won race [race]."
-    if round == 1:
+    if stage == 1:
         return
 
-    # maybe should only be done if round > 2
+    # maybe should only be done if stage > 2
     if LWINT < lowTime:
         $ RVL = RVL + 10
-    if round < 4:
+    if stage < 4:
         return
 
-    # only continue if round == 4
+    # only continue if stage == 4
     "lines 11064 to 11084, write WINNERS1.DG1"
     if SWT18 == -1:
         jump f11085
@@ -838,7 +697,7 @@ label f11525:
     $ carVal[playerWin] = carVal[playerWin] + RVL
 
 label f11528:
-    "END OF RACE [round]"
+    "END OF RACE [stage]"
     return
 
 label f11740:
@@ -960,135 +819,6 @@ label f11990:
         $ RVL = RVL + 200
         $ PV[playerWin] = PV[playerWin] + 4
     return
-
-label f12205:
-    if N[curCar] < 4:
-        jump f12250
-    "&, you have blown first gear on the old 4-speed."#;N$(L)
-    "Your options are to avoid first gear or buy the available 3-speed."
-    "Another transmission will cost $50.  Enter 'B' to buy (if 'B' goto f12225)"#;I$
-    $ numGears[curCar] = 3
-    $ gearRatios[[curCar][4]] = 0
-    if engineStats[[curCar][0]] > 135:
-        jump f12270
-    else:
-        return
-
-label f12225:
-    $ gearRatios[[curCar][4]] = 0
-    $ gearRatios[[curCar][3]] = 2.67
-    $ gearRatios[[curCar][2]] = 1.55
-    $ numGears[curCar] = 3
-    $ SV[curCar] = SV[curCar] - 50
-    if engineStats[[curCar][0]] > 135:
-        jump f12270
-    else:
-        return
-
-label f12250:
-    if gearRatios[[curCar][3]] < 2.5:
-        jump f12255
-    if engineStats[[curCar][0]] > 135:
-        jump f12270
-    else:
-        return
-
-label f12255:
-    player[curCar] "Your clutch is gone.  It will cost you $50 to replace it."#;N$(L)
-    "You have no alternative; press enter to continue"#;I$
-    $ SV[curCar] = SV[curCar] - 50
-    if engineStats[[curCar][0]] < 136:
-        return
-
-label f12270:
-    if engineStats[[curCar][4]] < 3500:
-        return
-    if engineStats[[curCar][1]] < 4100:
-        return
-    "You have pushed the old straight 8 beyond its limits."
-    "It is going to blow up soon.  Perhaps you should consider selling."
-    if round == 2:
-        $ engineStats[[curCar][0]] = 2
-    else:
-        $ engineStats[[curCar][0]] = 135
-    return
-    if round == 3:
-        jump f12500
-    if VLCD[curCar] > 4:
-        jump f12450
-    if MFR[curCar] == "FF":
-        jump f12450
-    if carYear[curCar] < 46:
-        $ VLPCT = .6
-    else:
-        $ VLPCT = .9
-    return
-
-label f12450:
-    if carYear[curCar] < 46:
-        $ VLPCT = .8
-    else:
-        $ VLPCT = .9
-    if VLCD[curCar] > 6:
-        $ VLPCT = VLPCT + .1
-    if VLCD[curCar] > 7:
-        $ VLPCT = VLPCT + .1
-    if VLCD[curCar] > 8:
-        $ VLPCT = VLPCT + .1
-    return
-
-label f12500:
-    if VLCD[curCar] > 4:
-        jump f12550
-    if MFR[curCar]) == "FF":
-        jump f12550
-    if YR[curCar] > 48:
-        $ VLPCT = .9
-    if YR[curCar] < 49:
-        $ VLPCT = .6
-    if YR[curCar] < 46:
-        $ VLPCT = .3
-    jump f12560
-
-label f12550:
-    $ VLPCT = .9
-
-label f12560:
-    if VLCD[curCar] < 4:
-        $ VLPCT = VLPCT - .1
-    if VLCD[curCar] > 6:
-        $ VLPCT = VLPCT + .1
-    if VLCD[curCar] > 7:
-        $ VLPCT = VLPCT + .1
-    if VLCD[curCar] > 8:
-        $ VLPCT = VLPCT + .1
-    return
-    "You will have to help the computer choose a car by supplying a 'seed' number."
-    if CN[curCar] == 0:
-        $ CN[curCar] = 10
-    jump f14400
-    if curCar == 1:
-        "use file USED50-A.DG1"
-    if curCar == 2:
-        "use file USED50-B.DG1"
-    call f11300
-    if curCar == 1:
-        "use file USED50-A.DG1"
-    if curCar == 2:
-        "use file USED50-B.DG1"
-    call f11400
-
-label f14255:
-    call f10210
-    jump f890
-
-label f14400:
-    if curCar == 1:
-        "use file JUNK2.DG1"
-    if curCar == 2:
-        "use file JUNK1.DG1"
-    call f11400
-    jump f14255
 
 label gears:
     if  numGears[curCar] == 4:
