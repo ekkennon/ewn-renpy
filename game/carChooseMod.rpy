@@ -49,70 +49,6 @@ label chooseCarMod:
             $ curCar -= 1
     return
 
-label disreputable:
-    $ curFile = renpy.file("cars/carslist" + str(phase) + str(stage) + str(curCar) + ".dg1")
-    $ lines = curFile.read().splitlines()
-
-    $ car1 = ""
-    while len(lines) > 0 and car1 == "":
-        $ car1 = renpy.random.choice(lines)
-        $ cardets = car1.split(",")
-        $ lines.remove(car1)
-        if savings[curCar] < cardets[3]:
-            if cardets[18] < FINYR: # car is too old to be financed
-                $ car1 = ""
-
-    $ desc1 = cardets[4] + " " + cardets[5] + " " + cardets[6]
-    $ car2 = ""
-    while len(lines) > 0 and car2 == "":
-        $ car2 = renpy.random.choice(lines)
-        $ cardets = car2.split(",")
-        $ lines.remove(car2)
-        if savings[curCar] < cardets[3]:
-            if cardets[18] < FINYR: # car is too old to be financed
-                $ car2 = ""
-
-    $ desc2 = cardets[4] + " " + cardets[5] + " " + cardets[6]
-    $ car3 = ""
-    while len(lines) > 0 and car3 == "":
-        $ car3 = renpy.random.choice(lines)
-        $ cardets = car3.split(",")
-        $ lines.remove(car3)
-        if savings[curCar] < cardets[3]:
-            if cardets[18] < FINYR: # car is too old to be financed
-                $ car3 = ""
-
-    $ desc3 = cardets[4] + " " + cardets[5] + " " + cardets[6]
-    $ car4 = ""
-    while len(lines) > 0 and car4 == "":
-        $ car4 = renpy.random.choice(lines)
-        $ cardets = car4.split(",")
-        $ lines.remove(car4)
-        if savings[curCar] < cardets[3]:
-            if cardets[18] < FINYR: # car is too old to be financed
-                $ car4 = ""
-    $ desc4 = cardets[4] + " " + cardets[5] + " " + cardets[6]
-
-    menu:
-        "Which car would you like?"
-
-        "[desc1]" if car1 != "":
-            $ cardets = car1.split(",")
-        "[desc2]" if car2 != "":
-            $ cardets = car2.split(",")
-        "[desc3]" if car3 != "":
-            $ cardets = car3.split(",")
-        "[desc4]" if car4 != "":
-            $ cardets = car4.split(",")
-
-    call assignCar
-    return
-
-label junkyard:
-    player[curCar] "junkyard"
-    # have player choose car
-    return
-
 label chooseCar:
     # Phase 1:
         # family and friends cars (USED50FA.DG1 & USED50FB.DG1)
@@ -139,13 +75,64 @@ label chooseCar:
         # 64-A
         # 65-A
         # hotrods
-    player[curCar] "You can choose your own car or you can have the computer randomly choose a car for you."
-    player[curCar] "If you choose your own car it will cost more but it will be in better shape."
-    player[curCar] "If you have the computer choose then the car will come from the front row of a junkyard (prices less than $50)"
-    player[curCar] "If you want to choose your own car then the car will come from the back row of a disreputable used car lot (prices less than $200)"
-    call screen carloc1
 
-    return
+    if carVal[curCar] > 0:
+        call f16150 # sell current car
+
+    $ curFile = renpy.file("cars/carslist" + str(phase) + str(stage) + str(curCar) + ".dg1")
+    $ lines = curFile.read().splitlines()
+
+    $ car1 = ""
+    while lines > 0 and car1 == "":
+        $ car1 = renpy.random.choice(lines)
+        $ cardets = car1.split(",")
+        $ lines.remove(car1)
+        if savings[curCar] < cardets[3]: # if the player can't afford the car
+            if cardets[18] < FINYR: # car is too old to be financed
+                $ car1 = ""
+
+    $ desc1 = cardets[4] + " " + cardets[5] + " " + cardets[6]
+    $ car2 = ""
+    while lines > 0 and car2 == "":
+        $ car2 = renpy.random.choice(lines)
+        $ cardets = car2.split(",")
+        $ lines.remove(car2)
+        if savings[curCar] < cardets[3]: # if the player can't afford the car
+            if cardets[18] < FINYR: # car is too old to be financed
+                $ car2 = ""
+
+    $ desc2 = cardets[4] + " " + cardets[5] + " " + cardets[6]
+    $ car3 = ""
+    while lines > 0 and car3 == "":
+        $ car3 = renpy.random.choice(lines)
+        $ cardets = car3.split(",")
+        $ lines.remove(car3)
+        if savings[curCar] < cardets[3]: # if the player can't afford the car
+            if cardets[18] < FINYR: # car is too old to be financed
+                $ car3 = ""
+
+    $ desc3 = cardets[4] + " " + cardets[5] + " " + cardets[6]
+    $ car4 = ""
+    while lines > 0 and car4 == "":
+        $ car4 = renpy.random.choice(lines)
+        $ cardets = car4.split(",")
+        $ lines.remove(car4)
+        if savings[curCar] < cardets[3]: # if the player can't afford the car
+            if cardets[18] < FINYR: # car is too old to be financed
+                $ car4 = ""
+    $ desc4 = cardets[4] + " " + cardets[5] + " " + cardets[6]
+
+    menu:
+        "Which car would you like?"
+
+        "[desc1]" if car1:
+            $ cardets = car1.split(",")
+        "[desc2]" if car2:
+            $ cardets = car2.split(",")
+        "[desc3]" if car3:
+            $ cardets = car3.split(",")
+        "[desc4]" if car4:
+            $ cardets = car4.split(",")
 
 label assignCar:
     $ engineStats[curCar][0] = int(cardets[1])
@@ -178,9 +165,9 @@ label assignCar:
         $ engine = engine.split(",")
         if engine[0] == MFR[curCar] and int(engine[3]) == engineStats[curCar][2] and int(engine[1]) == engineStats[curCar][0]:
             $ engineStats[curCar][3] = int(engine[4])
-            $ engineStats[curCar][4] = int(engine[5])
-            $ engineStats[curCar][5] = int(engine[6])
-            $ engineStats[curCar][6] = int(engine[7])
+            $ engineStats[curCar][4] = float(engine[5])
+            $ engineStats[curCar][5] = float(engine[6])
+            $ engineStats[curCar][6] = float(engine[7])
             $ NC[curCar] = int(engine[8])
             $ NB[curCar] = int(engine[9])
             $ CR[curCar] = float(engine[10])
@@ -189,10 +176,7 @@ label assignCar:
             $ engineStats[curCar][1] = float(engine[2])
         $ engNum += 1
 
-    call carCheck
-    return
-
-label carCheck:# check for modifications needed on car immediately after purchasing
+label carCheck:# check for modifications needed on car immediately after purchasing (P1X)
     if engineStats[curCar][0] == 0:
         jump f14260
     else:
@@ -200,16 +184,17 @@ label carCheck:# check for modifications needed on car immediately after purchas
     return
 
 label modifications:
-    if stage == 2:
+    if stage == 5:#2:
         $ modsCost = 5
         $ savings[curCar] = savings[curCar] + 100 # why does their money increase for wanting mods?
-        jump f15065
-        #(if 'M' jump f15110)
+        call f15065
+    elif stage < 5:#== 3:
+        $ FINYR = 54
+        $ modsCost = 5
+        $ savings[curCar] = savings[curCar] + 100
+        call f16010
 
-    elif stage == 3:
-        jump f16010
-
-    elif stage == 4:
+    if stage == 6:#4:
         jump f17010
     return
 
@@ -363,6 +348,32 @@ label f10500:
     $ engineStats[curCar][2] = 0
     jump f10210
 
+label f12100:
+    #REM:  INCREASE VALUE OF JUNKERS
+
+label f12105:
+    if stage == 3:
+        $ VLX = 150
+    else:
+        $ VLX = 100
+
+label f12110:
+    if carVal[curCar] > engineStats[curCar][0]:
+        return
+
+label f12120:
+    if carVal(curCar) > VLX:
+        return
+
+label f12130:
+    if engineStats[curCar][0] > 100:
+        $ carVal[curCar] = carVal[curCar] * 2
+    else:
+        $ carVal[curCar] = engineStats[curCar][0]
+
+label f12140:
+    return
+
 label f12205:
     if MFR(curCar) == "MOPAR":
         if N[curCar] < 4:
@@ -414,6 +425,27 @@ label f12270:
         $ engineStats[curCar][0] = 2
     else:
         $ engineStats[curCar][0] = 135
+    return
+
+label f12400:
+    if stage == 3:
+        jump f12500
+
+label f12410:
+    if VLCD[curCar] > 4:
+        jump f12450
+
+label f12420:
+    if MFR[curCar] == "FF":
+        jump f12450
+
+label f12430:
+    if carYear[curCar] < 46:
+        $ VLPCT = .6
+    else:
+        $ VLPCT = .9
+
+label f12440:
     return
 
 label f12450:
@@ -562,7 +594,7 @@ label f14497:
     call f10200
 
 label f14498:
-    call f12030
+    #call f12030
 
 label f14499:
     return
@@ -591,7 +623,7 @@ label f14542:
     $ VL[curCar] = VL[curCar] + 20
 
 label f14545:
-    call f12030
+    #call f12030
 
 label f14550:
     if numGears[curCar] < 3:
@@ -727,7 +759,7 @@ label f14792:
     #CLOSE #1
 
 label f14795:
-    call f12030
+    #call f12030
 
 label f14799:
     return
@@ -751,7 +783,9 @@ label f15150:
     #"if the player wants modifications, read from file ENGINEX3. (line 15150)"
 
 label f15160:
-    $ SM == MFR[curCar]
+    #"curCar=[curCar], MFR=[MFR[1]], preSM=[SM]"
+    $ SM = MFR[curCar]
+    #"postSM=[SM]"
 
 label f15170:
     if SM == "":
@@ -759,29 +793,72 @@ label f15170:
         "this should never be reached (f15170)"
 
 label f15180:
+    #"curCar=[curCar]"
     $ SP3 = engineStats[curCar][2]
+    #"it seems the player's car looked at for SM was not the same as the player's car looked at for SP3"
+    #"curCar=[curCar], SM=[SM], SP3=[SP3]"
+    #$ SP1 = engineStats[curCar][0] # this was added for this game because the original code (P1T) line 15190 doesn't make sense to me why it would work
 
 label f15190:
+    # this line is in the original code (P1T) but it doesn't make sense to me why it works in the game and it doesn't work here.
     $ SP1 = 0
     "read from file and output engine options to player (f15190)"
+    $ curFile = renpy.file("cars/engines.dg1")
+    $ lines = curFile.read().splitlines()
+
+    $ engineCount = -1
+    $ engNum = 0
+    #"EO00[engineOptions[0][0]], EO01[engineOptions[0][1]], EO02[engineOptions[0][2]], EO03[engineOptions[0][3]], EO04[engineOptions[0][4]], EO10[engineOptions[1][0]], EO11[engineOptions[1][1]], EO12[engineOptions[1][2]], EO13[engineOptions[1][3]], EO14[engineOptions[1][4]]"
+    while engNum < len(lines) and engineCount < 4:
+        #"engine number: [engNum]"
+        $ engine = lines[engNum]
+        $ engine = engine.split(",")
+        call f15220
+        $ engNum += 1
+
+    if engineCount == -1:
+        "no engines available"
+        jump f15460
+    else:
+        menu:
+            "Which engine would you like?"
+
+            "[engineOptions[0][0]]":
+                $ engdets = engineOptions[1][0]
+            "[engineOptions[0][1]]" if engineCount > 0:
+                $ engdets = engineOptions[1][1]
+            "[engineOptions[0][2]]" if engineCount > 1:
+                $ engdets = engineOptions[1][2]
+            "[engineOptions[0][3]]" if engineCount > 2:
+                $ engdets = engineOptions[1][3]
+            "[engineOptions[0][4]]" if engineCount > 3:
+                $ engdets = engineOptions[1][4]
+
+    jump f15390
 
 label f15220:
-    if SM == MFGR:
+    if SM == engine[0]:
+        #"SM=[SM]"
+        #"f15220 - Current1 CID = [engineStats[1][2]], this CID = [engine[3]]"
+        #"f15220 - Current2/0 CID = [engineStats[0][2]], this CID = [engine[3]]"
         jump f15230
     else:
-        jump f15340
+        return
 
 label f15230:
     if SP3 > 0:
+        #"SP3=[SP3]"
         jump f15240
     else:
         jump f15270
 
 label f15240:
-    if SP3 == P3:
+    if SP3 == int(engine[3]):
+        #"f15240 - CID=[SP3]"
         jump f15250
     else:
-        jump f15340
+        #"P3=[engine[3]]"
+        return
 
 label f15250:
     if SP1 > 0:
@@ -790,72 +867,114 @@ label f15250:
         jump f15270
 
 label f15260:
-    if SP1 == P1:
+    if SP1 == int(engine[1]):
         jump f15270
     else:
-        jump f15340
+        return
 
 label f15270:
-    player[curCar] "MFGR [MFGR], DISP=[P3], HP=[P1] @ [P5], TORQUE=[P6] @ [P7]"
+    #"number of engines = [engineCount]"
+
 
 label f15280:
-    $ LL = LL + 1
+    #$ LL = LL + 1
 
 label f15290:
-    if LL < 23:
-        jump f15340
+    #if LL < 23:
+        #return
 
 label f15310:
-    $ LL = 1
+    #$ LL = 1
+    #return
 
 label f15340:
-    player[curCar] "WHAT IS THE EXACT HORSEPOWER YOU WANT (WP1 is the HP entered by the player)"
+    #player[curCar] "WHAT IS THE EXACT HORSEPOWER YOU WANT (WP1 is the HP entered by the player)"
 
 label f15345:
-    if WP1 == 0:
-        jump f15420
+    #if WP1 == 0:
+        #jump f15420
 
 label f15350:
-    $ WORK1 = WP1 - engineStats[curCar][0]
+    $ WORK1 = int(engine[1]) - engineStats[curCar][0]
 
 label f15360:
     $ WORK2 = WORK1 * modsCost
 
 label f15370:
-    $ WORK3 = savings[curCar] - WORK2
+    if WORK2 > 0:
+        $ WORK3 = savings[curCar] - WORK2
+    else:
+        return
 
 label f15380:
-    if WORK3 < 0:
-        player[curCar] "YOU CAN'T AFFORD THAT - TRY AGAIN"
-        jump f15340
+    if WORK3 > 0:
+        $ engineCount += 1
+        #", EC [engineCount]"
+        #"MFGR [engine[0]]"
+        #", DISP=[engine[3]]"
+        #", HP=[engine[1]]"
+        #" @ [engine[5]]"
+        #", TORQUE=[engine[6]]"
+        #" @ [engine[7]]"
+        #" will cost $[WORK2]"
+        #if engineCount == 0:
+            #"EO [engineOptions[0][0]]"
+        #elif engineCount == 1:
+            #"EO [engineOptions[0][1]]"
+        #elif engineCount == 2:
+            #"EO [engineOptions[0][2]]"
+        #elif engineCount == 3:
+            #"EO [engineOptions[0][3]]"
+        #elif engineCount == 4:
+            #"EO [engineOptions[0][4]]"
+        #player[curCar] "YOU CAN'T AFFORD THAT - TRY AGAIN (f15380)"
+        #jump f15340
+        $ engineOptions[0][engineCount] = "HP=" + engine[1] + " @ " + engine[5] + ", TORQUE=" + engine[6] + " @ " + engine[7] + " will cost $" + str(WORK2)
+        $ engineOptions[1][engineCount] = engine
+    return
 
 label f15390:
-    player[curCar] "YOU CAN INCREASE TO [WP1] HP - IT WILL LEAVE YOU WITH $[WORK3]"
+    $ engineOptions = [["","","","",""],["","","","",""]]
+    #$ engdets = engdets.split(",")
+    #$ cardets = car1.split(",")
+    #player[curCar] "YOU CAN INCREASE TO [WP1] HP - IT WILL LEAVE YOU WITH $[WORK3]"
+    #"the price needs to be displayed to the player (f15390)"
 
 label f15400:
-    player[curCar] "ENTER 'Y' TO CONFIRM MODIFICATION (if 'Y' jump f15430, if 'N' jump f15420)"
+    #player[curCar] "ENTER 'Y' TO CONFIRM MODIFICATION (if 'Y' jump f15430, if 'N' jump f15420)"
 
 label f15420:
     #"line 15420"
-    player[curCar] "YOU OPTED NOT TO MODIFY AT THIS TIME"
-    jump f15520
+    #player[curCar] "YOU OPTED NOT TO MODIFY AT THIS TIME"
+    #jump f15520
 
 label f15430:
-    $ engineStats[curCar][0] = WP1
+    $ engineStats[curCar][0] = int(engdets[1])
     $ savings[curCar] = WORK3
     $ carVal[curCar] = carVal[curCar] + (WORK1 * 2)
+    $ engineStats[curCar][3] = int(engdets[4])
+    $ engineStats[curCar][4] = float(engdets[5])
+    $ engineStats[curCar][5] = float(engdets[6])
+    $ engineStats[curCar][6] = float(engdets[7])
+    $ NC[curCar] = int(engdets[8])
+    $ NB[curCar] = int(engdets[9])
+    $ CR[curCar] = float(engdets[10])
+    $ CAM[curCar] = engdets[11]
+    $ BRTH[curCar] = int(engdets[12])
+    $ engineStats[curCar][1] = float(engdets[2])
+    $ engineStats[curCar][2] = int(engdets[3])
 
 label f15440:
-    player[curCar] "MODIFICATIONS COMPLETE; HP = [engineStats[curCar][0]], CASH = $[savings[curCar]], CAR IS WORTH $[carVal[curCar]]"
+    player[curCar] "MODIFICATIONS COMPLETE"#; HP = [engineStats[curCar][0]], CASH = $[savings[curCar]], CAR IS WORTH $[carVal[curCar]]"
 
 label f15460:
-    $ engineStats[curCar][1] = 0
-    $ engineStats[curCar][4] = 0
-    $ engineStats[curCar][5] = 0
-    $ engineStats[curCar][6] = 0
+    #$ engineStats[curCar][1] = 0
+    #$ engineStats[curCar][4] = 0
+    #$ engineStats[curCar][5] = 0
+    #$ engineStats[curCar][6] = 0
 
-    call f10200
-    call f8900
+    #call f10200
+    #call f8900
 
 label f15520:
     #"line 15520"
@@ -864,18 +983,18 @@ label f15520:
 
 label f16010:
     #FOR PL=1 TO 2
-    $ curCar = 0
-    call f16014
-    $ curCar = 1
+    #$ curCar = 0
+    #call f16014
+    #$ curCar = 1
 
 label f16014:
-    $ FINYR = 54
+    #$ FINYR = 54
 
 label f16015:
-    $ modsCost = 5
+    #$ modsCost = 5
 
 label f16020:
-    $ savings[curCar] = savings[curCar] + 100
+    #$ savings[curCar] = savings[curCar] + 100
 
 label f16030:
     if engineStats[curCar][2] < 229:
@@ -917,7 +1036,7 @@ label f16062:
 
 label f16065:
     $ engineStats[curCar][0] = 0
-    call f12030
+    #call f12030
 
 label f16080:
     player[curCar] "YOU CAN LOOK AT USED CARS (L) OR MODIFY/REBUILD (M) (if 'L' jump f16150, if 'M' jump f16315)"
@@ -925,19 +1044,20 @@ label f16080:
     jump f16220 # i don't see how this would ever be reached, originally line 16125
 
 label f16130:
-    player[curCar] "You now have $[savings[curCar]]."
+    #player[curCar] "You now have $[savings[curCar]]."
 
 label f16131:
-    player[curCar] "YOU CAN LOOK AT USED CARS (L), MODIFY YOUR CAR (M), OR RACE IT AS IS (R) (if 'L' jump f16150, if 'M' jump f16315, if 'R' jump f16740)"
+    #player[curCar] "YOU CAN LOOK AT USED CARS (L), MODIFY YOUR CAR (M), OR RACE IT AS IS (R) (if 'L' jump f16150, if 'M' jump f16315, if 'R' jump f16740)"
+    jump f16315
 
 label f16150:
     call f12400
 
 label f16165:
-    $ WORK1 = (carValPCT * carVal[curCar]) + (engineStats[curCar][0] * .1) - ( weight[curCar][0] * .005)
+    $ WORK1 = (VLPCT * carVal[curCar]) + (engineStats[curCar][0] * .1) - ( weight[curCar][0] * .005)
 
 label f16175:
-    player[curCar] "\        \-YOU HAVE BEEN OFFERED $[WORK1] FOR YOUR [desc[curCar]]"
+    player[curCar] "\        \-YOU HAVE BEEN OFFERED $[WORK1] FOR YOUR car."#[desc[curCar]]"
 
 label f16180:
     player[curCar] "YOU FIGURE THIS IS MUCH MORE THAN YOU COULD GET AS A TRADE-IN"
@@ -950,12 +1070,13 @@ label f16195:
 
 label f16200:
     $ carVal[curCar] = 0
+    return
 
 label f16205:
-    player[curCar] "\        \ YOU HAVE $[savings[curCar]] TO SPEND"
+    #player[curCar] "\        \ YOU HAVE $[savings[curCar]] TO SPEND"
 
 label f16220:
-    player[curCar] "\        \ YOU ARE GOING TO BUY A CAR; YOU HAVE $[savings[curCar]]"
+    #player[curCar] "\        \ YOU ARE GOING TO BUY A CAR; YOU HAVE $[savings[curCar]]"
 
 label f16222:
     player[curCar] "CHOOSE FROM DECENT USED CARS (U) OR NEWSPAPER WANT ADS (W)"
@@ -992,7 +1113,7 @@ label f16280:
     call f10200
 
 label f16315:
-    call f12030
+    #call f12030
     if savings[curCar] < 0:
         jump f16740
 
@@ -1328,7 +1449,7 @@ label f17420:
 
 label f17475:
     #CLS
-    call f12030
+    #call f12030
 
 label f17490:
     if savings[curCar] < 1:

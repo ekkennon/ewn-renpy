@@ -109,6 +109,7 @@ define SP3 = 0
 define WP1 = 0
 define raceLoop = 0
 define FINYR = 54
+define engineOptions = [["","","","",""],["","","","",""]]
 
 screen carloc1:
     imagemap:
@@ -168,86 +169,155 @@ label phase1:
     $ race += 1
     call chooseCarMod
     "Beginning Race #[stage]"
-    call race  # race 1
+    # call race  # race 1
 
     $ stage += 1
     $ race += 1
     call chooseCarMod
     "Beginning Race #[stage]"
-    call race  # race 2
+    # call race  # race 2
 
     $ stage += 1
     $ race += 1
+    call chooseCarMod
     "Beginning Race #[stage]"
-    #call race  # race 3
+    # call race  # race 3
 
     $ stage += 1
     $ race += 1
+    call chooseCarMod
     "Beginning Race #[stage]"
-    #call race  # race 4
+    # call race  # race 4
 
     # in the original game the player now has a choice to stop or continue.
     # if the player chooses to stop in P1T the program ends.
     # if the player chooses to stop in P1X, Early1 is run.
-    jump phase2
 
 label phase2:
     $ phase += 1
     $ stage = 0
     "Beginning Phase [phase]."
-
     "You will now swap lanes."
+
     $ stage += 1
     $ race += 1
     call chooseCarMod
     "Beginning Race #[stage]"
-    call race  # race 1
+    # call race  # race 1
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 2
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 3
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 4
 
     "End of Phase [phase]."
-
-    jump phase3
 
 label phase3:
     $ phase += 1
     $ stage = 0
     "Beginning Phase [phase]."
-
     "You will now swap lanes."
+
     $ stage += 1
     $ race += 1
     call chooseCarMod
     "Beginning Race #[stage]"
-    call race  # race 1
+    # call race  # race 1
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 2
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 3
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 4
 
     "End of Phase [phase]."
-    jump phase4
 
 label phase4:
     $ phase += 1
     $ stage = 0
     "Beginning Phase [phase]."
-
     "You will now swap lanes."
+
     $ stage += 1
     $ race += 1
     call chooseCarMod
     "Beginning Race #[stage]"
-    call race  # race 1
+    # call race  # race 1
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 2
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 3
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 4
 
     "End of Phase [phase]."
-    jump phase5
 
 label phase5:
     $ phase += 1
     $ stage = 0
     "Beginning Phase [phase]."
-
     "You will now swap lanes."
+
     $ stage += 1
     $ race += 1
     call chooseCarMod
     "Beginning Race #[stage]"
-    call race  # race 1
+    # call race  # race 1
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 2
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 3
+
+    $ stage += 1
+    $ race += 1
+    call chooseCarMod
+    "Beginning Race #[stage]"
+    # call race  # race 4
 
     "End of Phase [phase]."
     "End of game."
