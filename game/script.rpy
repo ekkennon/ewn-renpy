@@ -171,11 +171,17 @@ label phase1:
     "Beginning Race #[stage]"
     # call race  # race 1
 
+    $ savings[0] += 200
+    $ savings[1] += 200
+
     $ stage += 1
     $ race += 1
     call chooseCarMod
     "Beginning Race #[stage]"
     # call race  # race 2
+
+    $ savings[0] += 200
+    $ savings[1] += 200
 
     $ stage += 1
     $ race += 1

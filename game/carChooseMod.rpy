@@ -156,7 +156,7 @@ label assignCar:
     $ NTR[curCar] = numGears[curCar]
     $ TR[curCar] = cardets[19] or ""
 
-    $ curFile = renpy.file("cars/engines.dg1")
+    $ curFile = renpy.file("cars/engineslist.dg1")
     $ lines = curFile.read().splitlines()
 
     $ engNum = 0 # compare this (lines 10210 - 10480) with lines 10810 - 10895 in P1X (both P1X and P1T have the same 10210 - 10480)
@@ -184,18 +184,21 @@ label carCheck:# check for modifications needed on car immediately after purchas
     return
 
 label modifications:
-    if stage == 5:#2:
-        $ modsCost = 5
-        $ savings[curCar] = savings[curCar] + 100 # why does their money increase for wanting mods?
-        call f15065
-    elif stage < 5:#== 3:
+    if stage == 4:
+        $ FINYR = 54
+        call f17017
+
+    if race > 2:#== 3:
         $ FINYR = 54
         $ modsCost = 5
         $ savings[curCar] = savings[curCar] + 100
         call f16010
 
-    if stage == 6:#4:
-        jump f17010
+    if savings[curCar] > 0:  # originally only if stage == 2
+        $ modsCost = 5
+        $ savings[curCar] = savings[curCar] + 100 # why does their money increase for wanting mods?
+        call f15065
+
     return
 
 label f10010:
@@ -362,7 +365,7 @@ label f12110:
         return
 
 label f12120:
-    if carVal(curCar) > VLX:
+    if carVal[curCar] > VLX:
         return
 
 label f12130:
@@ -464,13 +467,13 @@ label f12450:
 label f12500:
     if VLCD[curCar] > 4:
         jump f12550
-    if MFR[curCar]) == "FF":
+    if MFR[curCar] == "FF":
         jump f12550
-    if YR[curCar] > 48:
+    if carYear[curCar] > 48:
         $ VLPCT = .9
-    if YR[curCar] < 49:
+    if carYear[curCar] < 49:
         $ VLPCT = .6
-    if YR[curCar] < 46:
+    if carYear[curCar] < 46:
         $ VLPCT = .3
     jump f12560
 
@@ -803,7 +806,7 @@ label f15190:
     # this line is in the original code (P1T) but it doesn't make sense to me why it works in the game and it doesn't work here.
     $ SP1 = 0
     "read from file and output engine options to player (f15190)"
-    $ curFile = renpy.file("cars/engines.dg1")
+    $ curFile = renpy.file("cars/engineslist.dg1")
     $ lines = curFile.read().splitlines()
 
     $ engineCount = -1
@@ -1122,77 +1125,113 @@ label f16318:
 
 label f16325:
     #OPEN "I",#1,"BOLTIN-Z.DG1"
-    "line 16325, use file BOLTIN-Z.DG1"
+    #"line 16325, use file BOLTIN-Z.DG1"
+
+    $ curFile = renpy.file("cars/engineswaps.dg1")
+    $ lines = curFile.read().splitlines()
+
     $ HX = 0
+    $ engNum = 0
+    $ engCount = -1
+    $ engList = ["","","","",""]
+    while engNum < len(lines) and engCount < 4:
+        $ engine = lines[engNum].split(",")
+        call f16336
+        $ engNum += 1
+
+    #jump f16375  # i don't know what 16375 is meant to accomplish
+
+    if engCount == -1:
+        jump f16380
+    else:
+        menu:
+            "[engList[0]]":
+                "you chose [engList[0]]"
+            "[engList[1]]" if engCount > 1:
+                " you chose [engList[1]]"
+            "[engList1[2]]" if engCount > 2:
+                " you chose [engList[2]]"
+            "[engList[3]]" if engCount > 3:
+                " you chose [engList[3]]"
+            "[engList[4]]" if engCount > 4:
+                " you chose [engList[4]]"
+    jump f16385
 
 label f16336:
-    if C1 > stage:
-        jump f16375
+    if int(engine[4]) > stage:
+        return
 
 label f16340:
-    if MFGR = MFR[curCar]:
+    if engine[0] == MFR[curCar]:
         jump f16345
     else:
-        jump f16375
+        return
 
 label f16345:
-    if OLD = engineStats[curCar][2]:
+    if int(engine[1]) == engineStats[curCar][2]:
         jump f16350
     else:
-        jump f16375
+        return
 
 label f16350:
-    $ HX = HP
+    $ HX = int(engine[3])
 
 label f16355:
-    player[curCar]"YOU CAN BUY A [HP] HP [NW] FOR $[C2] "
+    $ engCount += 1
+    $ engList[engCount] = engine
+    player[curCar]"YOU CAN BUY A [engine[3]] HP [engine[2]] FOR $[engine[5]] "
+    return
 
 label f16375:
-    if HX = 0:
+    if HX == 0:
         jump f16380
     else:
         jump f16385
 
 label f16380:
     player[curCar] "NO FURTHER ENGINE SWAPS AVAILABLE AT THIS TIME"
-    jump f16525
+    return
+    jump f16525  # this seems to go on to HP upgrades so seems not needed here
 
 label f16385:
-    player[curCar] "INPUT THE HP YOU DESIRE (SP1 is the requested HP)"
+    #player[curCar] "INPUT THE HP YOU DESIRE (SP1 is the requested HP)"
 
 label f16386:
-    if SP1 = 0:
-        jump f16525
+    #if SP1 = 0:
+        #jump f16525
 
 label f16390:
     #OPEN "I",#1,"BOLTIN-Z.DG1"
     "hp change uses file BOLTIN-Z.DG1 (line 16390)"
     $ HX = 0
+    #INPUT #1,MFGR$,OLD,NW,HP,C1,C2,VLOLD
 
 label f16405:
-    if MFGR = MFR[curCar]:
+    if engine[0] == MFR[curCar]:
         jump f16410
     else:
-        jump f16465
+        return
 
 label f16410:
-    if OLD = engineStats[curCar][2]:
+    if engine[1] == engineStats[curCar][2]:
         jump f16415
     else:
-        jump f16465
+        return
 
 label f16415:
-    if HP = SP1:
+    if engine[3] == SP1:  # SP1 is the HP value entered by the player to choose the engine
         jump f16420
     else:
-        jump f16465
+        return
 
 label f16420:
-    $ NWH = NW
-    $ HPH = HP
-    $ C1H = C1
-    $ C2H = C2
-    $ VLHLD = VLOLD
+    $ NWH = engine[2]
+    $ HPH = engine[3]
+    $ C1H = engine[4]
+    $ C2H = str(engine[5])
+    $ VLHLD = engine[6]
+    # according to the original version there should be a return statement here
+    # this probably doesn't need a return statement due to not needing a loop as the original game had
 
 label f16465:
     player[curCar] "IT WILL COST YOU $[C2H] ; YOU CAN GET SOME HELP INSTALLING IT."
@@ -1223,150 +1262,16 @@ label f16500:
 
     call f10200
     call f8900
-
-label f16510:
-    player[curCar] "YOU NOW HAVE A [engineStats[curCar][0]] HP [engineStats[curCar][2]] CID [desc[curCar]]"
-
-label f16515:
-    player[curCar] "YOUR SAVINGS IS $[savings[curCar]] AND YOUR CAR IS WORTH $[carVal[curCar]]"
-
-label f16525:
-    if savings[curCar] < 0:
-        jump f16740
-
-label f16540:
-    player[curCar] "\        \ YOU HAVE $[savings[curCar]] TO MODIFY YOUR [desc[curCar]] - COST IS $[modsCost] PER HP."
-
-label f16545:
-    player[curCar] "YOU HAVE [engineStats[curCar][1]] HP AND $[savings[curCar]]"
-    player[curCar] "ENTER 'N' TO SKIP MODIFICATIONS THIS TIME (if 'Y' jump f16560, if 'N' jump f16740)"
-
-label f16560:
-    #OPEN "I",#1,"ENGINEX3"
-    "modifications use file ENGINEX3 (line 16560)"
-
-label f16565:
-    $ SM = MFR[curCar]
-
-label f16570:
-    if SM == "":
-        # THEN INPUT "MANUFACTURER";SM$
-        "line 16570"
-
-label f16575:
-    $ SP3 = engineStats[curCar][2]
-
-label f16580:
-    $ SP1 = 0
-
-label f16595:
-    if SM == MFGR:
-        jump f16600
-    else:
-        jump f16655
-
-label f16600:
-    if SP3 > 0:
-        jump f16605
-    else:
-        jump f16620
-
-label f16605:
-    if SP3 == P3:
-        jump f16610
-    else:
-        jump f16655
-
-label f16610:
-    if SP1 > 0:
-        jump f16615
-    else:
-        jump f16620
-
-label f16615:
-    if SP1 == P1:
-        jump f16620
-    else:
-        jump f16655
-
-label f16620:
-    player[curCar] "MFGR [MFGR], DISP=[P3], HP=[P1] @ [P5], TORQUE=[P6] @ [P7]"
-
-label f16625:
-    $ LL = LL + 1
-
-label f16630:
-    if LL < 23:
-        jump f16655
-
-label f16640:
-    $ LL = 1
-
-label f16655:
-    player[curCar] "WHAT IS THE EXACT HORSEPOWER YOU WANT (WP1 is the requested HP)"
-
-label f16658:
-    if WP1 == 0:
-        jump f16695
-
-label f16660:
-    $ WORK1 = WP1 - engineStats[curCar][0]
-
-label f16665:
-    $ WORK2 = WORK1 * modsCost
-
-label f16670:
-    $ WORK3 = savings[curCar] - WORK2
-
-label f16675:
-    if WORK3 < 0:
-        player[curCar] "YOU CAN'T AFFORD THAT - TRY AGAIN"
-        jump f16655
-
-label f16680:
-    player[curCar] "YOU CAN INCREASE TO [WP1] HP - IT WILL LEAVE YOU WITH $[WORK3]"
-
-label f16685:
-    player[curCar] "ENTER 'Y' TO CONFIRM MODIFICATION (if 'Y' jump f16700, if 'N' jump f16695)"
-
-label f16695:
-    "line 16695"
-    player[curCar] "YOU OPTED NOT TO MODIFY AT THIS TIME"
-    jump f16740
-
-label f16700:
-    $ engineStats[curCar][0] = WP1
-    $ savings[curCar] = WORK3
-    $ carVal[curCar] = carVal[curCar] + (WORK1 * 2)
-
-label f16705:
-    player[curCar] "MODIFICATIONS COMPLETE; HP = [engineStats[curCar][0]], CASH = $[savings[curCar]], CAR IS WORTH $[carVal[curCar]]"
-
-label f16715:
-    $ engineStats[curCar][1] = 0
-    $ engineStats[curCar][4] = 0
-    $ engineStats[curCar][5] = 0
-    $ engineStats[curCar][6] = 0
-
-    call f10200
-    call f8900
-    call f12020
-
-label f16740:
-    #REM
-    #NEXT PL
     return
-    jump f890
-    jump f16525
 
 label f17010:
     #FOR PL=1 TO 2
-    $ curCar = 0
-    call f17014
-    $ curCar = 1
+    #$ curCar = 0
+    #call f17014
+    #$ curCar = 1
 
 label f17014:
-    $ FINYR = 54
+    #$ FINYR = 54
 
 label f17017:
     if engineStats[curCar][2] == 323:
@@ -1393,302 +1298,3 @@ label f17110:
 label f17170:
     call f12400
     $ WORK1 = (VLPCT * carVal[curCar]) + (engineStats[curCar][0] * .1)
-
-label f17200:
-    player[curCar] "\        \-YOU HAVE BEEN OFFERED $[WORK1] FOR YOUR [desc[curCar]]"
-
-label f17210:
-    player[curCar] "YOU FIGURE THIS IS MUCH MORE THAN YOU COULD GET AS A TRADE-IN"
-
-label f17220:
-    player[curCar] "IF YOU ARE SERIOUS ABOUT BUYING ANOTHER CAR, YOU'D BETTER SELL IT NOW (Y/N) (if 'Y' jump f17240, if 'N' jump f17110)"
-
-label f17240:
-    $ savings[curCar] = savings[curCar] + WORK1
-
-label f17250:
-    $ carVal[curCar] = 0
-
-label f17290:
-    player[curCar] "\        \ YOU ARE GOING TO BUY A CAR; YOU HAVE $[savings[curCar)]]"
-
-label f17300:
-    if curCar == 0:
-        # THEN OPEN "I", #1,"USED54-C.DG1"
-        "car will come from file USED54-C.DG1"
-
-label f17310:
-    if curCar == 1:
-        # THEN OPEN "I",#1,"USED54-D.DG1"
-        "car will come from file USED54-D.DG1"
-    call f11300
-
-label f17400:
-    player[curCar] "INPUT THE NUMBER OF THE CAR YOU WANT OR '0' TO PASS, as [CN[curCar]]"
-
-label f17405:
-    if CN[curCar] > 0:
-        jump f17410
-
-label f17406:
-    $ savings[curCar] = savings[curCar] - WORK1
-    $ carVal[curCar] = WORK1
-    jump f17475
-
-label f17410:
-    if curCar == 0:
-        #OPEN "I",#1,"USED54-C.DG1"
-        "car will come from file USED54-C.DG1"
-
-label f17420:
-    if curCar == 1:
-        #OPEN "I",#1,"USED54-D.DG1"
-        "car will come from file USED54-D.DG1"
-    call f11400
-    call f10200
-
-label f17475:
-    #CLS
-    #call f12030
-
-label f17490:
-    if savings[curCar] < 1:
-        return
-
-label f17495:
-    player[curCar] "YOU MAY HAVE THE OPPORTUNITY TO MAKE AN ENGINE SWAP-TO LOOK, ENTER (Y/N) (if 'N' jump f17840, if 'Y' jump f17510)"
-
-label f17510:
-    #OPEN "I",#1,"BOLTIN-Z.DG1"
-    "use file BOLTIN-Z.DG1 for engine swap"
-    $ HX = 0
-
-label f17535:
-    if C1 > stage:
-        jump f17610
-
-label f17540:
-    if MFGR == MFR[curCar]:
-        jump f17550
-    else:
-        jump f17610
-
-label f17550:
-    if OLD == engineStats[curCar][2]:
-        jump f17560
-    else:
-        jump f17610
-
-label f17560:
-    $ HX = HP
-
-label f17570:
-    player[curCar] "YOU CAN BUY A [HP] HP [NW] FOR $[C2]"
-
-label f17610:
-    if HX == 0:
-        jump f17620
-    else:
-        jump f17630
-
-label f17620:
-    player[curCar] "NO FURTHER ENGINE SWAPS AVAILABLE AT THIS TIME"
-    jump f17840
-
-label f17630:
-    player[curCar] "INPUT THE HP YOU DESIRE (SP1 is the desired HP)"
-
-label f17635:
-    if SP1 == 0:
-        jump f17840
-
-label f17640:
-    #OPEN "I",#1,"BOLTIN-Z.DG1"
-    "hp change uses file BOLTIN-Z.DG1"
-    $ HX = 0
-
-label f17670:
-    if MFGR == MFR[curCar]:
-        jump f17680
-    else:
-        jump f17730
-
-label f17680:
-    if OLD == engineStats[curCar][2]:
-        jump f17690
-    else:
-        jump f17730
-
-label f17690:
-    if HP == SP1:
-        jump f17700
-    else:
-        jump f17730
-
-label f17700:
-    $ NWH = NW
-    $ HPH = HP
-    $ C1H = C1
-    $ C2H = C2
-    $ VLHLD = VLOLD
-
-label f17730:
-    player[curCar] "IT WILL COST YOU $[C2H] ; YOU CAN GET SOME HELP INSTALLING IT."
-
-label f17740:
-    if VLHLD = 0:
-        $ VLHLD = engineStats[curCar][0] * .85
-
-label f17750:
-    player[curCar] "YOU CAN SELL YOUR OLD ENGINE FOR $[VLHLD]"
-
-label f17760:
-    player[curCar] "DO YOU WANT TO MAKE THIS SWAP (Y/N) (if 'Y' jump f17780, if 'N' jump f17840)"
-
-label f17780:
-    $ savings[curCar] = savings[curCar] - C2H + VLHLD
-
-label f17790:
-    $ carVal[curCar] = carVal[curCar] + (C1H * .65)
-
-label f17800:
-    $ engineStats[curCar][2] = NWH
-    $ engineStats[curCar][0] = HPH
-    $ engineStats[curCar][4] = 0
-    $ engineStats[curCar][5] = 0
-    $ engineStats[curCar][6] = 0
-    $ engineStats[curCar][1] = 0
-
-    call f10200
-    call f8900
-
-label f17820:
-    player[curCar] "YOU NOW HAVE A [engineStats[curCar][0]] HP [engineStats[curCar][2]] CID [desc]"
-
-label f17830:
-    player[curCar] "YOUR SAVINGS IS $[savings[curCar]] AND YOUR CAR IS WORTH $[carVal[curCar]]"
-
-label f17840:
-    if savings[curCar] < 1:
-        return
-
-label f17850:
-    player[curCar] "\        \ YOU HAVE $[savings[curCar]] TO MODIFY YOUR [desc] - COST IS $[modsCost] PER HP."
-
-label f17860:
-    player[curCar] "ENTER 'N' TO SKIP MODIFICATIONS THIS TIME (if 'N' return, if 'Y' jump f17870)"
-
-label f17870:
-    player[curCar] "YOU HAVE [engineStats[curCar][0]] HP AND $[savings[curCar]]"
-
-label f17890:
-    #OPEN "I",#1,"ENGINEX3"
-    "file for modifications is ENGINEX3"
-
-label f17900:
-    $ SM = MFR[curCar]
-
-label f17910:
-    if SM = "":
-        #INPUT "MANUFACTURER";SM$
-        "line 17910"
-
-label f17920:
-    $ SP3 = engineStats[curCar][2]
-
-label f17930:
-    $ SP1 = 0
-
-label f17960:
-    if SM == MFGR:
-        jump f17970
-    else:
-        jump f18080
-
-label f17970:
-    if SP3 > 0:
-        jump f17980
-    else:
-        jump f18010
-
-label f17980:
-    if SP3 == P3:
-        jump f17990
-    else:
-        jump f18080
-
-label f17990:
-    if SP1 > 0:
-        jump f18000
-    else:
-        jump f18010
-
-label f18000:
-    if SP1 == P1:
-        jump f18010
-    else:
-        jump f18080
-
-label f18010:
-    player[curCar] "MFGR [MFGR], DISP=[P3], HP=[P1] @ [P5], TORQUE=[P6] @ [P7]"
-
-label f18020:
-    $ LL = LL + 1
-
-label f18030:
-    if LL < 23:
-        jump f18080
-
-label f18050:
-    $ LL = 1
-
-label f18080:
-    player[curCar] "WHAT IS THE EXACT HORSEPOWER YOU WANT (WP1 is requested HP)"
-
-label f18085:
-    if WP1 == 0:
-        return
-
-label f18090:
-    $ WORK1 = WP1 - engineStats[curCar][0]
-
-label f18100:
-    $ WORK2 = WORK1 * modsCost
-
-label f18110:
-    $ WORK3 = savings[curCar] - WORK2
-
-label f18120:
-    if WORK3 < 0:
-        player[curCar] "YOU CAN'T AFFORD THAT - TRY AGAIN"
-        jump f18080
-
-label f18130:
-    player[curCar] "YOU CAN INCREASE TO [WP1] HP - IT WILL LEAVE YOU WITH $[WORK3]"
-
-label f18140:
-    player[curCar] "ENTER 'Y' TO CONFIRM MODIFICATION (if 'Y' jump f18170, if 'N' jump f18160)"
-
-label f18160:
-    "line 18160"
-    player[curCar] "YOU OPTED NOT TO MODIFY AT THIS TIME"
-    return
-
-label f18170:
-    $ engineStats[curCar][0] = WP1
-    $ savings[curCar] = WORK3
-    $ carVal[curCar] = carVal[curCar] + (WORK1 * 2)
-
-label f18180:
-    player[curCar] "MODIFICATIONS COMPLETE; HP = [engineStats[curCar][0]], CASH = $[savings[curCar]], CAR IS WORTH $[carVal[curCar]]"
-
-label f18200:
-    $ engineStats[curCar][1] = 0
-    $ engineStats[curCar][4] = 0
-    $ engineStats[curCar][5] = 0
-    $ engineStats[curCar][6] = 0
-
-    call f10200
-    call f8900
-    call f12020
-    return
